@@ -18,6 +18,11 @@
 | ✅ | **API 초기화 수정 v5.3** | `services/geminiService.ts` | **Critical Fix**: 모듈 로드 시점이 아닌 함수 호출 시점에 `process.env.API_KEY`를 로드하도록 변경하여 '빈 키 요청' 문제 해결. |
 | ✅ | **AI UX/UI 긴급 수정 v5.4** | `App.tsx`, `DietRecipe.tsx` | **Logic Fix**: AI 기본값을 True로 변경하여 최초 실행 시 AI가 동작하도록 수정. 냉장고 파먹기 배너의 조건부 렌더링 제거하여 상시 노출. |
 | ✅ | **리포트 핫픽스 v5.5** | `StyleWorkout.tsx` | **HTML Content Fix**: 다운로드된 리포트에 누락되었던 **조리 순서(Preparation Steps)** 섹션 추가. |
+| ✅ | **이미지 품질 상향 v5.6** | `services/geminiService.ts`, `constants.ts`, `StyleWorkout.tsx` | **High Res Enforce**: 저장용 압축 로직을 600px -> 1024px로 상향. Mock 데이터 원본 요청. |
+| ✅ | **이미지 품질/비율 최적화 v5.8** | `services/geminiService.ts` | **Final Ratio Fix**: 코디는 전신에 적합한 **3:4(세로)**, 음식은 접시 형태를 고려한 **1:1(정사각형)** 적용. |
+| ✅ | **보정된 현실성 (Aspirational Realism) v5.9** | `services/geminiService.ts` | **Prompt Upgrade**: 체형별 긍정적 시각 묘사(Curvy, Athletic 등)를 프롬프트에 자동 적용. |
+| ✅ | **API 할당량 보호 v6.0** | `services/geminiService.ts` | **Rate Limit Fix**: 이미지 생성을 병렬(`Promise.all`)에서 순차 실행(Sequential)으로 변경하고 1초 지연을 추가하여 429 오류 방지. |
+| ✅ | **AI 호출 최적화 v6.1** | `services/engine.ts`, `App.tsx` | **Manual Trigger Only**: 앱 초기 실행/새로고침 시 자동 API 호출을 차단. 'Refresh' 버튼을 누를 때만 API를 호출하도록 변경하여 개발 중 할당량 낭비 방지. |
 
 ## 2. Tech Stack & Rules
 ### Tech Stack
@@ -70,3 +75,9 @@
 | 2024-05-22 | **API 초기화 수정 v5.3** | **Critical Bug Fix**: 모듈 스코프의 AI 인스턴스 제거. API 호출 시마다 `process.env.API_KEY`를 새로 읽어 클라이언트를 초기화하도록 수정. | `services/geminiService.ts` | ✅ Yes |
 | 2024-05-22 | **AI UX/UI 긴급 수정 v5.4** | **Logic Fix**: AI 기본값을 True로 변경. 냉장고 파먹기 배너 상시 노출. | `App.tsx`, `DietRecipe.tsx` | ✅ Yes |
 | 2024-05-22 | **리포트 핫픽스 v5.5** | **HTML Content Fix**: 리포트 내 레시피 조리 순서(Steps) 누락 문제 해결. | `StyleWorkout.tsx` | ✅ Yes |
+| 2024-05-22 | **이미지 품질 상향 v5.6** | **High Res Enforce**: 저장용 압축 로직을 600px -> 1024px로 상향. Mock 데이터 원본 요청. | `services/geminiService.ts`, `constants.ts`, `StyleWorkout.tsx` | ✅ Yes |
+| 2024-05-22 | **이미지 품질/비율 최적화 v5.7** | **Ratio Fix**: 코디(3:4), 음식(16:9) 비율 적용하여 피사체 맞춤형 생성. | `services/geminiService.ts` | ✅ Yes |
+| 2024-05-22 | **이미지 품질/비율 최적화 v5.8** | **Final Ratio Fix**: 코디는 전신에 적합한 **3:4(세로)**, 음식은 접시 형태를 고려한 **1:1(정사각형)** 적용. | `services/geminiService.ts` | ✅ Yes |
+| 2024-05-22 | **보정된 현실성 (Aspirational Realism) v5.9** | **Prompt Upgrade**: 체형별 긍정적 시각 묘사(Curvy, Athletic 등)를 프롬프트에 자동 적용. | `services/geminiService.ts` | ✅ Yes |
+| 2024-05-22 | **API 할당량 보호 v6.0** | **Rate Limit Fix**: 이미지 생성을 병렬(`Promise.all`)에서 순차 실행으로 변경하고 1초 지연을 추가. | `services/geminiService.ts` | ✅ Yes |
+| 2024-05-22 | **AI 호출 최적화 v6.1** | **Call Fix**: 자동 API 호출 차단. Refresh 버튼에만 연결. | `services/engine.ts`, `App.tsx` | ✅ Yes |

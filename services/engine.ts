@@ -1,6 +1,5 @@
 import { UserProfile, RecommendationResult, TaggedItem, Language } from '../types';
 import { getMockData } from '../constants';
-import { fetchAIRecommendations } from './geminiService';
 
 // Helper to score local items
 const scoreItem = (item: TaggedItem, user: UserProfile): number => {
@@ -25,15 +24,14 @@ const getBestMatch = <T extends TaggedItem>(items: T[], user: UserProfile): T =>
   return sorted[0];
 };
 
+/**
+ * UPDATED: This function now ONLY returns Local Mock Data.
+ * It no longer calls the AI API automatically.
+ * AI calls are now exclusively handled by explicit user actions in App.tsx.
+ */
 export const getRecommendations = async (user: UserProfile): Promise<RecommendationResult> => {
-  // 1. Try AI if enabled
-  if (user.useAI) {
-    const aiResult = await fetchAIRecommendations(user);
-    if (aiResult) return aiResult;
-    // Fallback to local if AI fails
-  }
-
-  // 2. Local Engine Logic
+  
+  // 1. Load Local Engine Logic
   const { recipes, outfits, workouts } = getMockData(user.language);
 
   const bestRecipe = getBestMatch(recipes, user);

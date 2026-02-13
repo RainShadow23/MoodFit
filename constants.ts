@@ -31,7 +31,7 @@ const MOCK_RECIPES_EN: Recipe[] = [
     calories: 320,
     protein: "8g",
     time: "25m",
-    image: "https://images.unsplash.com/photo-1476718406336-bb5a9690ee2b?q=80&w=600&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1476718406336-bb5a9690ee2b?q=80&w=1024&auto=format&fit=crop",
     ingredients: [
       { name: "Pumpkin", amount: "400g" },
       { name: "Ginger", amount: "1 inch" },
@@ -71,7 +71,7 @@ const MOCK_RECIPES_KO: Recipe[] = [
     calories: 320,
     protein: "8g",
     time: "25분",
-    image: "https://images.unsplash.com/photo-1476718406336-bb5a9690ee2b?q=80&w=600&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1476718406336-bb5a9690ee2b?q=80&w=1024&auto=format&fit=crop",
     ingredients: [
       { name: "단호박", amount: "400g" },
       { name: "생강", amount: "1톨" },
@@ -187,7 +187,7 @@ const MOCK_WORKOUTS_EN: Workout[] = [
         name: "Lying Leg Raises",
         reps: "12 Reps",
         description: "Lie flat and lift legs without bending knees.",
-        image: "https://images.unsplash.com/photo-1599058945522-28d584b6f0ff?q=80&w=200"
+        image: "https://images.unsplash.com/photo-1599058945522-28d584b6f0ff?q=80&w=1024" 
       }
     ]
   }
@@ -232,7 +232,7 @@ const MOCK_WORKOUTS_KO: Workout[] = [
         name: "라잉 레그 레이즈",
         reps: "12회",
         description: "평평하게 누워 무릎을 굽히지 않고 다리를 들어 올립니다.",
-        image: "https://images.unsplash.com/photo-1599058945522-28d584b6f0ff?q=80&w=200"
+        image: "https://images.unsplash.com/photo-1599058945522-28d584b6f0ff?q=80&w=1024"
       }
     ]
   }

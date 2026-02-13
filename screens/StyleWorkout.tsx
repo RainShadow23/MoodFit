@@ -52,8 +52,8 @@ const StyleWorkout: React.FC<Props> = ({ outfit, workout, recipe, quote, user, o
             h4 { margin-top: 15px; margin-bottom: 5px; color: #666; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; }
             .meta { font-size: 0.9rem; color: #666; margin-bottom: 30px; }
             .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid #eee; }
-            .img-container { width: 100%; height: 300px; overflow: hidden; border-radius: 10px; margin-bottom: 15px; }
-            img { width: 100%; height: 100%; object-fit: cover; }
+            .img-container { width: 100%; overflow: hidden; border-radius: 10px; margin-bottom: 15px; }
+            img { width: 100%; height: auto; object-fit: contain; max-height: 600px; }
             .quote { font-style: italic; font-size: 1.2rem; color: #555; text-align: center; padding: 20px; background: #fff; border-left: 4px solid #4ecdc4; margin: 20px 0; }
             .row { display: flex; gap: 20px; }
             .col { flex: 1; min-width: 0; }

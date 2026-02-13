@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import { UserProfile, RecommendationResult, Language, Recipe } from "../types";
+import { UserProfile, RecommendationResult, Language, Recipe, BoneStructure } from "../types";
 
 /**
  * Helper to clean Markdown code blocks from JSON string
@@ -10,7 +10,9 @@ const cleanJsonString = (str: string): string => {
 
 /**
  * Compresses a base64 image string using HTML Canvas
- * Target: JPEG format, 0.5 quality to save LocalStorage space
+ * Target: JPEG format.
+ * UPDATED: Max width 1024px, Quality 0.8 (High)
+ * Strategy: We allow high resolution in storage to satisfy user request for clear downloads even after reload.
  */
 export const compressImage = (base64Str: string): Promise<string> => {
     return new Promise((resolve) => {
@@ -18,8 +20,8 @@ export const compressImage = (base64Str: string): Promise<string> => {
         img.src = base64Str;
         img.onload = () => {
             const canvas = document.createElement('canvas');
-            // Scale down if too large (max width 600px for storage)
-            const maxWidth = 600;
+            // Max width 1024px for High Quality
+            const maxWidth = 1024;
             const scale = maxWidth / img.width;
             const width = scale < 1 ? maxWidth : img.width;
             const height = scale < 1 ? img.height * scale : img.height;
@@ -33,8 +35,8 @@ export const compressImage = (base64Str: string): Promise<string> => {
                 return;
             }
             ctx.drawImage(img, 0, 0, width, height);
-            // Export as JPEG with 0.5 quality for storage optimization
-            resolve(canvas.toDataURL('image/jpeg', 0.5));
+            // Export as JPEG with 0.8 quality (High Quality)
+            resolve(canvas.toDataURL('image/jpeg', 0.8));
         };
         img.onerror = () => {
             console.error("Image compression failed");
@@ -45,6 +47,8 @@ export const compressImage = (base64Str: string): Promise<string> => {
 
 /**
  * Helper to compress the entire result object for LocalStorage
+ * Note: The active application state keeps the original high-res image.
+ * This is only for the backup in LocalStorage.
  */
 export const compressRecommendationResult = async (result: RecommendationResult): Promise<RecommendationResult> => {
     const compressed = { ...result };
@@ -65,17 +69,23 @@ export const compressRecommendationResult = async (result: RecommendationResult)
 /**
  * Helper to generate an image using Gemini 2.5 Flash Image
  * NOW RETURNS HIGH QUALITY (No Compression)
+ * UPDATED: Accepts aspectRatio ("1:1", "3:4", "16:9", etc.)
  */
-const generateImage = async (prompt: string): Promise<string | null> => {
+const generateImage = async (prompt: string, aspectRatio: string = "1:1"): Promise<string | null> => {
     try {
         // FIX: Initialize AI client here to ensure env var is ready
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
         
-        console.log(`Generating image with prompt: ${prompt.substring(0, 50)}...`);
+        console.log(`Generating image (${aspectRatio}) with prompt: ${prompt.substring(0, 50)}...`);
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-flash-image',
             contents: {
                 parts: [{ text: prompt }]
+            },
+            config: {
+                imageConfig: {
+                    aspectRatio: aspectRatio 
+                }
             }
         });
 
@@ -89,11 +99,33 @@ const generateImage = async (prompt: string): Promise<string | null> => {
         }
         console.warn("Image generation returned no inlineData");
         return null;
-    } catch (e) {
-        console.error("Image Gen Failed:", e);
+    } catch (e: any) {
+        // Robust Error Handling for 429
+        if (e.message?.includes('429') || e.status === 'RESOURCE_EXHAUSTED') {
+            console.warn(`Quota Exceeded for Image Gen (${aspectRatio}). Using fallback.`);
+        } else {
+            console.error("Image Gen Failed:", e);
+        }
         return null;
     }
 }
+
+/**
+ * Helper to map technical bone structure terms to flattering fashion visual descriptions.
+ * This implements "Aspirational Realism".
+ */
+const getBodyVisualDescriptor = (boneStructure: BoneStructure): string => {
+    switch (boneStructure) {
+        case BoneStructure.Ectomorph:
+            return "slim, slender, tall fashion model physique, elegant posture";
+        case BoneStructure.Endomorph:
+            return "curvy, voluptuous, confident plus-size fashion model, flattering silhouette, body positive";
+        case BoneStructure.Mesomorph:
+            return "athletic, toned, fit muscular physique, strong posture";
+        default: // Normal
+            return "balanced, natural healthy body type, relatable fashion look";
+    }
+};
 
 export const generateFridgeRecipe = async (ingredients: string, user: UserProfile): Promise<Recipe | null> => {
     // FIX: Initialize AI client here
@@ -134,18 +166,18 @@ export const generateFridgeRecipe = async (ingredients: string, user: UserProfil
         if (!textResponse.text) throw new Error("No text response");
         const data = JSON.parse(cleanJsonString(textResponse.text));
 
-        // Generate Image
+        // Generate Image (Square 1:1 for Food - Best for plates/bowls)
         const imagePrompt = `Professional food photography, overhead shot of ${data.title}. 
         Ingredients visible: ${data.ingredients.slice(0,3).map((i: any) => i.name).join(', ')}.
         Studio lighting, appetizing, 4k.`;
         
-        const image = await generateImage(imagePrompt);
+        const image = await generateImage(imagePrompt, "1:1");
 
         return {
             ...data,
             id: `ai-fridge-${Date.now()}`,
             tags: ['AI_FRIDGE'],
-            image: image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=600',
+            image: image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=1024',
             ingredients: (data.ingredients || []).map((i: any) => ({ ...i, image: '' }))
         };
 
@@ -230,28 +262,33 @@ export const fetchAIRecommendations = async (user: UserProfile): Promise<Recomme
         throw new Error("Failed to parse AI response");
     }
 
-    console.log("Text Generation Successful. Prompting Images...");
+    console.log("Text Generation Successful. Prompting Images (Sequential)...");
 
-    // Step 2: Image Generation
-    const outfitPrompt = `Fashion photography, full body shot of a model with ${user.boneStructure} body type wearing ${data.outfit.title}. 
+    // Step 2: Image Generation (Sequential to avoid 429 Quota Error)
+    
+    // Outfit: Use 3:4 Aspect Ratio (Portrait) + "Aspirational Realism" prompting
+    const bodyDescriptor = getBodyVisualDescriptor(user.boneStructure);
+    const outfitPrompt = `Fashion photography, full body shot of a ${bodyDescriptor} wearing ${data.outfit.title}. 
+    The outfit helps with ${user.targetArea}.
     Items: ${data.outfit.items.map((i: any) => i.name).join(', ')}.
     Season: ${user.currentSeason}. Natural lighting, high fashion editorial, clean background, 8k resolution.`;
     
+    // 2-1. Generate Outfit Image first
+    const outfitImage = await generateImage(outfitPrompt, "3:4");
+
+    // 2-2. Delay to be gentle on Rate Limits (1s buffer)
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    // Recipe: Use 1:1 Aspect Ratio (Square) for plates/bowls
     const recipePrompt = `Professional food photography, overhead shot of ${data.recipe.title}. 
     Ingredients: ${data.recipe.ingredients.slice(0,3).map((i: any) => i.name).join(', ')}.
     Studio lighting, appetizing, 4k, shallow depth of field.`;
 
-    // Execute parallel requests
-    const [outfitImage, recipeImage] = await Promise.all([
-        generateImage(outfitPrompt),
-        generateImage(recipePrompt)
-    ]);
+    // 2-3. Generate Recipe Image second
+    const recipeImage = await generateImage(recipePrompt, "1:1");
 
-    // Check if critical images failed
-    if (!outfitImage && !recipeImage) {
-        console.warn("Both image generations failed. Returning null to trigger fallback.");
-        return null; 
-    }
+    // NOTE: Removed the strict check "if (!outfitImage && !recipeImage) return null;"
+    // We now allow partial success. If text exists but images failed (429), we fall back to Stock photos below.
 
     const result: RecommendationResult = {
         quote: data.quote,
@@ -259,14 +296,14 @@ export const fetchAIRecommendations = async (user: UserProfile): Promise<Recomme
             ...data.recipe,
             id: `ai-recipe-${Date.now()}`,
             tags: [user.currentMood, user.currentSeason],
-            image: recipeImage || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=600', 
+            image: recipeImage || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=1024', 
             ingredients: (data.recipe.ingredients || []).map((i: any) => ({ ...i, image: '' }))
         },
         outfit: {
             ...data.outfit,
             id: `ai-outfit-${Date.now()}`,
             tags: [user.currentSeason, user.targetArea],
-            image: outfitImage || 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=600',
+            image: outfitImage || 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1024',
         },
         workout: {
             ...data.workout,
@@ -274,7 +311,7 @@ export const fetchAIRecommendations = async (user: UserProfile): Promise<Recomme
             tags: [user.targetArea],
             exercises: (data.workout.exercises || []).map((ex: any) => ({
                 ...ex,
-                image: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=200' 
+                image: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=1024' 
             }))
         }
     };

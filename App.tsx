@@ -24,7 +24,7 @@ const App: React.FC = () => {
     currentMood: Mood.Happy,
     currentSeason: Season.Autumn,
     targetArea: BodyTarget.Waist,
-    useAI: true, // FIX: Default to TRUE so AI features are active immediately
+    useAI: true, 
     gender: Gender.Female,
     boneStructure: BoneStructure.Ectomorph,
     language: Language.EN, 
@@ -41,56 +41,52 @@ const App: React.FC = () => {
     initializeData();
   }, []); 
 
-  // If user toggles AI OFF, revert to local. If ON, try to show cached.
+  // Watch for AI Toggle: If turned OFF, revert to local mock immediately.
   useEffect(() => {
       if (!user.useAI) {
           loadLocalData();
-      } else {
-          // If switching TO AI, check if we have cached data first.
-          const cached = localStorage.getItem(LATEST_AI_KEY);
-          if (cached) {
-              try {
-                  setData(JSON.parse(cached));
-              } catch(e) {
-                  loadLocalData();
-              }
-          } else {
-              // If no cache but AI is ON, we might want to trigger a generation or just load local first
-              loadLocalData();
-          }
-      }
+      } 
+      // Note: If turned ON, we do NOTHING automatically. 
+      // We keep showing the current data (whether local or cached).
+      // The user must explicitly click "Refresh" to trigger an AI call.
   }, [user.useAI]);
 
 
   const initializeData = () => {
+      // Priority 1: Check LocalStorage (Persisted AI Data)
       const cached = localStorage.getItem(LATEST_AI_KEY);
-      if (cached && user.useAI) {
+      
+      if (cached) {
           try {
               const parsedData = JSON.parse(cached);
-              console.log("Restored latest AI session");
+              console.log("Restored latest AI session from storage");
               setData(parsedData);
+              return; // Exit if cache found
           } catch (e) {
-              console.error("Cache corrupted, loading local");
-              loadLocalData();
+              console.error("Cache corrupted, clearing and loading local");
+              localStorage.removeItem(LATEST_AI_KEY);
           }
-      } else {
-          loadLocalData();
-      }
+      } 
+      
+      // Priority 2: Load Local Mock Data (Free, Instant)
+      console.log("No cache found. Loading local mock data.");
+      loadLocalData();
   };
 
   const loadLocalData = async () => {
+      // getRecommendations is now purely local (engine.ts was updated)
       const result = await getRecommendations(user);
       setData(result);
   };
 
   const handleRefresh = async () => {
-      // 1. If AI is explicitly OFF, use local engine
+      // 1. If AI is explicitly OFF, just shuffle local data
       if (!user.useAI) {
           await loadLocalData();
           return;
       }
 
-      // 2. If AI is ON, Trigger Generation
+      // 2. If AI is ON, Trigger Generation (This is the ONLY place API is called for main recommendations)
       setIsLoading(true);
       try {
           const aiResult = await fetchAIRecommendations(user);
@@ -111,12 +107,14 @@ const App: React.FC = () => {
               });
 
           } else {
-              // FIX: Do not silently fail. Tell user if API key or Service is down.
-              alert("AI Generation failed. Please check your API Key or Network.");
+              alert("AI Generation failed. Falling back to local data.");
+              // Fallback to local if API fails/quota exceeded
+              loadLocalData(); 
           }
       } catch (e) {
           console.error("Refresh failed", e);
-          alert("Connection error.");
+          alert("Connection error. Using local data.");
+          loadLocalData();
       } finally {
           setIsLoading(false);
       }
