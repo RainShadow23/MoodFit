@@ -10,6 +10,9 @@ export default defineConfig(({ mode }) => {
       // Polyfill process.env.API_KEY so the existing code continues to work
       'process.env.API_KEY': JSON.stringify(env.API_KEY)
     },
+    build: {
+      outDir: 'dist', // Explicitly set output directory for Cloudflare
+    },
     server: {
       host: true
     }
