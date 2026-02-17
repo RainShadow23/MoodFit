@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { UserProfile, Mood, Season, MBTI, BodyTarget, RecommendationResult, Gender, BoneStructure, Language } from './types';
+import { UserProfile, Mood, Season, MBTI, BodyTarget, RecommendationResult, Gender, BoneStructure, Language, AIProvider } from './types';
 import { getRecommendations } from './services/engine';
 import BottomNav from './components/BottomNav';
 import Dashboard from './screens/Dashboard';
@@ -25,6 +25,7 @@ const App: React.FC = () => {
     currentSeason: Season.Autumn,
     targetArea: BodyTarget.Waist,
     useAI: true, 
+    aiProvider: AIProvider.OpenAI, // Default to OpenAI as requested for test
     gender: Gender.Female,
     boneStructure: BoneStructure.Ectomorph,
     language: Language.EN, 

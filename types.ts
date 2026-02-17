@@ -57,6 +57,11 @@ export enum Language {
   KO = 'ko'
 }
 
+export enum AIProvider {
+  Gemini = 'Gemini',
+  OpenAI = 'OpenAI'
+}
+
 export interface UserProfile {
   name: string;
   mbti: MBTI;
@@ -64,6 +69,7 @@ export interface UserProfile {
   currentSeason: Season;
   targetArea: BodyTarget;
   useAI: boolean; 
+  aiProvider: AIProvider; // New Field
   gender: Gender;
   boneStructure: BoneStructure;
   language: Language;

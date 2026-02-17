@@ -71,6 +71,7 @@ export const TRANSLATIONS = {
     language_desc: "Choose your preferred language",
     
     // New Profile Fields
+    name_label: "Name / Nickname",
     height: "Height",
     weight: "Weight",
     tastes_label: "Flavor Palette",
@@ -156,6 +157,7 @@ export const TRANSLATIONS = {
     language_desc: "선호하는 언어를 선택하세요",
 
     // New Profile Fields
+    name_label: "이름 / 닉네임",
     height: "키",
     weight: "몸무게",
     tastes_label: "선호하는 입맛",

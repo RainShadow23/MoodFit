@@ -24,15 +24,73 @@ const StyleWorkout: React.FC<Props> = ({ outfit, workout, recipe, quote, user, o
       [Season.Winter]: t(user.language, 'season_winter'),
   }
 
-  const getIconForType = (type: string) => {
-    const t = type.toLowerCase();
-    if (t.includes('coat') || t.includes('jacket') || t.includes('outer')) return 'apparel';
-    if (t.includes('pants') || t.includes('trousers') || t.includes('jeans')) return 'styler';
-    if (t.includes('shoe') || t.includes('sandal') || t.includes('boot')) return 'footprint';
-    if (t.includes('top') || t.includes('shirt') || t.includes('tunic')) return 'checkroom';
-    if (t.includes('bag') || t.includes('accessory')) return 'shopping_bag';
-    return 'accessibility_new';
+  // --- EMOJI LOGIC 1: OUTFIT ---
+  const getItemEmoji = (name: string, type: string) => {
+    const text = `${name} ${type}`.toLowerCase();
+
+    // 1. HEADWEAR
+    if (text.includes('hat') || text.includes('cap') || text.includes('beanie') || text.includes('beret')) return '🧢';
+    
+    // 2. OUTERWEAR
+    if (text.includes('coat') || text.includes('trench') || text.includes('parka') || text.includes('overcoat')) return '🧥';
+    if (text.includes('jacket') || text.includes('blazer') || text.includes('windbreaker') || text.includes('cardigan')) return '🧥';
+
+    // 3. DRESSES / SUITS
+    if (text.includes('dress') || text.includes('gown') || text.includes('frock')) return '👗';
+    if (text.includes('jumpsuit') || text.includes('romper') || text.includes('kimono')) return '👘';
+    if (text.includes('suit') || text.includes('tuxedo')) return '👔';
+
+    // 4. TOPS
+    if (text.includes('hoodie') || text.includes('sweatshirt')) return '🧥'; 
+    if (text.includes('sweater') || text.includes('knit')) return '🧶';
+    if (text.includes('shirt') || text.includes('blouse') || text.includes('top') || text.includes('tee') || text.includes('tunic') || text.includes('camisole') || text.includes('tank') || text.includes('crop')) return '👚';
+    if (text.includes('vest')) return '🦺';
+
+    // 5. BOTTOMS
+    if (text.includes('skirt') || text.includes('mini')) return '👗'; 
+    if (text.includes('jeans') || text.includes('denim')) return '👖';
+    if (text.includes('pant') || text.includes('trouser') || text.includes('legging') || text.includes('jogger') || text.includes('short') || text.includes('slack') || text.includes('bottom')) return '👖';
+
+    // 6. SHOES
+    if (text.includes('boot')) return '👢';
+    if (text.includes('heel') || text.includes('pump') || text.includes('stiletto')) return '👠';
+    if (text.includes('sandal') || text.includes('flip') || text.includes('slide') || text.includes('espadrille')) return '👡';
+    if (text.includes('sneaker') || text.includes('trainer') || text.includes('runner') || text.includes('shoe') || text.includes('loafer') || text.includes('flat') || text.includes('canvas')) return '👟';
+
+    // 7. BAGS
+    if (text.includes('backpack') || text.includes('rucksack')) return '🎒';
+    if (text.includes('bag') || text.includes('tote') || text.includes('purse') || text.includes('clutch') || text.includes('handbag') || text.includes('satchel')) return '👜';
+
+    // 8. ACCESSORIES
+    if (text.includes('scarf') || text.includes('muffler') || text.includes('shawl')) return '🧣';
+    if (text.includes('glove') || text.includes('mitten')) return '🧤';
+    if (text.includes('glass') || text.includes('shade') || text.includes('spectacle')) return '🕶️';
+    if (text.includes('watch') || text.includes('timepiece')) return '⌚';
+    if (text.includes('necklace') || text.includes('pendant') || text.includes('choker')) return '📿';
+    if (text.includes('ring')) return '💍';
+    if (text.includes('earring') || text.includes('jewelry') || text.includes('bracelet')) return '💎';
+    if (text.includes('tie') || text.includes('bow') || text.includes('ribbon')) return '🎀';
+    if (text.includes('belt')) return 'lz'; 
+
+    return '✨'; 
   }
+
+  // --- EMOJI LOGIC 2: WORKOUT (NEW) ---
+  const getWorkoutEmoji = (title: string, tags: string[] = []) => {
+      const text = `${title} ${tags.join(' ')}`.toLowerCase();
+
+      if (text.includes('yoga') || text.includes('stretch') || text.includes('pilates') || text.includes('meditation') || text.includes('flexible')) return '🧘';
+      if (text.includes('run') || text.includes('cardio') || text.includes('hiit') || text.includes('aerobic') || text.includes('jump')) return '🏃';
+      if (text.includes('weight') || text.includes('strength') || text.includes('muscle') || text.includes('lift') || text.includes('dumbell')) return '🏋️';
+      if (text.includes('core') || text.includes('abs') || text.includes('plank') || text.includes('bodyweight')) return '🤸';
+      if (text.includes('leg') || text.includes('squat') || text.includes('lunge')) return '🦵';
+      if (text.includes('arm') || text.includes('bicep') || text.includes('push')) return '💪';
+      
+      return '💪'; // Default
+  }
+
+  const workoutEmoji = getWorkoutEmoji(workout.title, workout.tags);
+
 
   // --- REPORT GENERATION LOGIC ---
   const handleDownloadReport = () => {
@@ -43,7 +101,7 @@ const StyleWorkout: React.FC<Props> = ({ outfit, workout, recipe, quote, user, o
     <html lang="${user.language}">
     <head>
         <meta charset="UTF-8">
-        <title>Luvit - Daily Personal Report</title>
+        <title>MoodFit - Daily Personal Report</title>
         <style>
             body { font-family: 'Helvetica Neue', sans-serif; color: #333; max-width: 800px; margin: 0 auto; padding: 40px; background: #fffaf5; }
             h1 { color: #ee6c2b; border-bottom: 2px solid #ee6c2b; padding-bottom: 10px; }
@@ -66,7 +124,7 @@ const StyleWorkout: React.FC<Props> = ({ outfit, workout, recipe, quote, user, o
     </head>
     <body>
         <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h1>Luvit Daily Report</h1>
+            <h1>MoodFit Daily Report</h1>
             <span style="font-weight: bold; color: #666;">${new Date().toLocaleDateString()}</span>
         </div>
         
@@ -120,7 +178,7 @@ const StyleWorkout: React.FC<Props> = ({ outfit, workout, recipe, quote, user, o
         </div>
 
         <div class="footer">
-            Generated by Luvit AI Personal Coach
+            Generated by MoodFit AI Personal Coach
         </div>
     </body>
     </html>
@@ -130,7 +188,7 @@ const StyleWorkout: React.FC<Props> = ({ outfit, workout, recipe, quote, user, o
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `Luvit_Report_${new Date().toISOString().slice(0,10)}.html`;
+    link.download = `MoodFit_Report_${new Date().toISOString().slice(0,10)}.html`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -237,7 +295,7 @@ const StyleWorkout: React.FC<Props> = ({ outfit, workout, recipe, quote, user, o
                     </div>
                 </div>
 
-                {/* Component Pieces */}
+                {/* Component Pieces (UPDATED: Emojis) */}
                 {outfit.items && outfit.items.length > 0 && (
                     <div className="space-y-3">
                         <h4 className="text-sm font-bold text-gray-900 dark:text-white px-1">Component Pieces</h4>
@@ -245,7 +303,7 @@ const StyleWorkout: React.FC<Props> = ({ outfit, workout, recipe, quote, user, o
                             {outfit.items.map((item, idx) => (
                                 <div key={idx} className="snap-center shrink-0 w-28 bg-white dark:bg-white/5 p-3 rounded-2xl border border-peach-accent/30 dark:border-white/5 shadow-sm flex flex-col items-center text-center group">
                                     <div className="w-16 h-16 bg-peach-light dark:bg-white/10 rounded-full mb-3 flex items-center justify-center overflow-hidden transition-colors group-hover:bg-peach-accent/20">
-                                        <span className="material-symbols-rounded text-3xl text-peach-vibrant">{getIconForType(item.name)}</span>
+                                        <span className="text-3xl filter drop-shadow-sm transform group-hover:scale-110 transition-transform">{getItemEmoji(item.name, item.type)}</span>
                                     </div>
                                     <p className="text-xs font-bold text-gray-800 dark:text-gray-200 leading-tight min-h-[2.5em] flex items-center justify-center">{item.name}</p>
                                     <p className="text-[10px] text-gray-400 mt-1">{item.type}</p>
@@ -276,7 +334,10 @@ const StyleWorkout: React.FC<Props> = ({ outfit, workout, recipe, quote, user, o
             <section className="space-y-4 pt-4 border-t border-peach-accent/20 dark:border-white/5">
                 <div className="flex justify-between items-center px-1">
                     <div>
-                        <h2 className="text-xl font-bold text-gray-900 dark:text-white">{workout.title}</h2>
+                        <div className="flex items-center gap-2">
+                             <h2 className="text-xl font-bold text-gray-900 dark:text-white">{workout.title}</h2>
+                             <span className="text-2xl animate-pulse">{workoutEmoji}</span>
+                        </div>
                         <div className="flex items-center gap-2 mt-1">
                             <span className="text-xs font-medium text-gray-500 dark:text-gray-400 flex items-center bg-gray-200 dark:bg-white/10 px-2 py-0.5 rounded-md">
                                 <span className="material-symbols-rounded text-xs mr-1">timer</span> {workout.duration}
@@ -307,8 +368,8 @@ const StyleWorkout: React.FC<Props> = ({ outfit, workout, recipe, quote, user, o
 
                 <div className="pt-4 pb-2">
                     <button className="w-full bg-peach-vibrant hover:bg-peach-dark text-white font-bold py-4 rounded-full shadow-lg shadow-peach-vibrant/30 flex items-center justify-center gap-2 transform transition active:scale-95">
-                        <span className="material-symbols-rounded">fitness_center</span>
-                        {t(user.language, 'start_workout')}
+                        <span className="text-xl">{workoutEmoji}</span>
+                        <span>{t(user.language, 'start_workout')}</span>
                     </button>
                 </div>
             </section>

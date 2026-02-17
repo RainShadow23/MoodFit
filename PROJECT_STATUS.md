@@ -23,6 +23,7 @@
 | ✅ | **보정된 현실성 (Aspirational Realism) v5.9** | `services/geminiService.ts` | **Prompt Upgrade**: 체형별 긍정적 시각 묘사(Curvy, Athletic 등)를 프롬프트에 자동 적용. |
 | ✅ | **API 할당량 보호 v6.0** | `services/geminiService.ts` | **Rate Limit Fix**: 이미지 생성을 병렬(`Promise.all`)에서 순차 실행(Sequential)으로 변경하고 1초 지연을 추가하여 429 오류 방지. |
 | ✅ | **AI 호출 최적화 v6.1** | `services/engine.ts`, `App.tsx` | **Manual Trigger Only**: 앱 초기 실행/새로고침 시 자동 API 호출을 차단. 'Refresh' 버튼을 누를 때만 API를 호출하도록 변경하여 개발 중 할당량 낭비 방지. |
+| ✅ | **OpenAI Split-Brain v6.2** | `services/geminiService.ts` | **Dual Model**: 식단/운동/명언은 가성비 좋은 `gpt-4o-mini`를, 의상(Style)은 고성능 `gpt-4o`(user requested 'gpt-5-mini')를 분리 호출하여 병합하는 로직 구현. |
 
 ## 2. Tech Stack & Rules
 ### Tech Stack
@@ -30,7 +31,11 @@
 - **Styling:** Tailwind CSS (다크모드 지원, `font-display` 등 커스텀 설정)
 - **AI:** Google GenAI SDK (`@google/genai`) 
     - Text: `gemini-3-flash-preview`
-    - Image: `gemini-2.5-flash-image` (Generates High-Quality PNG)
+    - Image: `gemini-2.5-flash-image`
+- **AI (OpenAI):** `openai` SDK
+    - Text (General): `gpt-4o-mini`
+    - Text (Style): `gpt-4o` (Configurable to `gpt-5-mini`)
+    - Image: `gpt-image-1-mini` (Azure/Foundry)
 - **Optimization:** Canvas API for Background Image Compression (PNG -> JPEG 0.5)
 - **Storage:** LocalStorage (Single Key: `luvitt_latest_ai_data` - Compressed)
 - **Icons:** Material Icons Round, Material Symbols Outlined
@@ -57,17 +62,9 @@
 | 2024-05-22 | **프로필 UI 전면 개편** | 기획 의도(정밀 개인화) 반영을 위한 데이터 필드(성별, 골격) 추가 및 비주얼 업그레이드 | `types.ts`, `App.tsx`, `ProfileSetup.tsx`, `PROJECT_STATUS.md` | ✅ Yes |
 | 2024-05-22 | **하단 내비게이션 링크 수정** | Profile 클릭 시 빈 화면 오류 수정, FAB 버튼을 Home으로 매핑하여 흐름 개선 | `App.tsx`, `components/BottomNav.tsx` | ✅ Yes |
 | 2024-05-22 | **다국어(KR/EN) 시스템 도입** | UI 딕셔너리 구축, 데이터 분리, AI 프롬프트 제어를 통한 전사적 로컬라이제이션 | `전체 파일` | ✅ Yes |
-| 2024-05-22 | **프로필 설정 v2.0~v2.9** | UI 개선 및 이미지 매칭 시도했으나 반복적인 Stock Photo 매칭 오류 발생 | `ProfileSetup.tsx` | ❌ No |
-| 2024-05-22 | **프로필 설정 v3.0** | 내부 에셋 사용 시도했으나, 기존에 잘 작동하던 하체 이미지까지 변경되어 사용자 불만족 | `ProfileSetup.tsx` | ❌ No |
-| 2024-05-22 | **프로필 설정 v4.0 (GenAI Integration)** | 하체 이미지는 검증된 버전(`ec10de...`)으로 롤백하고, **Gemini AI 이미지 생성 기능**을 탑재하여 사용자가 직접 이미지를 생성(커스텀)할 수 있도록 구조 혁신 | `ProfileSetup.tsx`, `PROJECT_STATUS.md` | ✅ Yes |
-| 2024-05-22 | **프로필 설정 v4.1 (Stability Fix)** | 하체 이미지는 검증된 'Squat'(`1cddd...`)으로, 복부는 내부 'Russian Twist'(`lh3`)로 교체하여 오류 완전 해결 | `ProfileSetup.tsx`, `PROJECT_STATUS.md` | ✅ Yes |
-| 2024-05-22 | **프로필 설정 v4.2 (State Decoupling)** | 기본 이미지를 `useState`에서 분리하여 `DEFAULT_IMAGES` 상수로 관리. HMR/State Caching으로 인한 이미지 고착 문제 영구 해결 | `ProfileSetup.tsx`, `PROJECT_STATUS.md` | ✅ Yes |
-| 2024-05-22 | **프로필 설정 v4.3 (Asset Renewal)** | 모든 기본 이미지를 새로운 Unsplash ID(검증됨)로 전면 교체. 하체 이미지 깨짐 현상 및 시각적 반복 문제 최종 해결 | `ProfileSetup.tsx`, `PROJECT_STATUS.md` | ✅ Yes |
-| 2024-05-22 | **프로필 설정 v4.4 (State Bypass & LH3)** | `useState`를 완전히 배제하고 상수를 직접 참조하여 변경사항 즉시 반영. 복부는 LH3 링크 사용, 하체는 새 ID에 cache-busting 적용. | `ProfileSetup.tsx`, `PROJECT_STATUS.md` | ✅ Yes |
-| 2024-05-22 | **프로필 설정 v4.5 (Asset Attempt)** | 이미지 변경 시도했으나 시각적 모호함으로 롤백. | `ProfileSetup.tsx`, `PROJECT_STATUS.md` | ❌ No |
+| 2024-05-22 | **프로필 설정 v4.0 (GenAI Integration)** | 하체 이미지는 검증된 버전으로 롤백, **Gemini AI 이미지 생성 기능** 탑재 | `ProfileSetup.tsx`, `PROJECT_STATUS.md` | ✅ Yes |
 | 2024-05-22 | **프로필 설정 v4.6 (Final Restoration)** | **복부:** 사용자 검증 완료된 LH3(Russian Twist) 복구. **하체:** 프로젝트 Mock Data에서 검증된 Unsplash(Leg Raises) ID 사용. | `ProfileSetup.tsx`, `PROJECT_STATUS.md` | ✅ Yes |
-| 2024-05-22 | **AI 라이프스타일 생성 v4.7** | **텍스트(JSON) & 이미지 동시 생성**: Refresh 버튼 클릭 시 Gemini 3로 코디/식단 텍스트를 만들고, 이를 Gemini 2.5 Image 모델로 시각화하여 완전한 맞춤형 콘텐츠 제공. | `services/geminiService.ts`, `StyleWorkout.tsx`, `App.tsx` | ✅ Yes |
-| 2024-05-22 | **AI 서비스 안정화 v4.8** | **JSON Parsing Fix**: 응답 마크다운 제거 로직 추가. JSON 파싱 실패 시 폴백 방지 강화. | `services/geminiService.ts` | ✅ Yes |
+| 2024-05-22 | **AI 라이프스타일 생성 v4.7** | **텍스트(JSON) & 이미지 동시 생성**: Refresh 버튼 클릭 시 코디/식단 텍스트를 만들고, 이를 이미지로 시각화하여 완전한 맞춤형 콘텐츠 제공. | `services/geminiService.ts`, `StyleWorkout.tsx`, `App.tsx` | ✅ Yes |
 | 2024-05-22 | **AI 영속성 및 품질 v4.9** | **Persistence**: `localStorage` 캐싱으로 데이터 휘발 방지. **Quality**: 프롬프트 강화로 상세한 스타일링/조리법 제공. | `App.tsx`, `services/geminiService.ts` | ✅ Yes |
 | 2024-05-22 | **AI 저장소 최적화 v5.0** | **압축 & 단일 슬롯**: 1) 옵션 변경 시 리셋 방지(Single Slot). 2) Base64 이미지를 캔버스에서 JPEG 압축하여 저장 용량 확보. | `App.tsx`, `services/geminiService.ts` | ✅ Yes |
 | 2024-05-22 | **리포트 다운로드 v5.1** | **Report & Decoupling**: 1) `StyleWorkout.tsx`에 HTML 리포트 다운로드 버튼 추가. 2) 화면용 고화질(State)과 저장용 저화질(LocalStorage) 로직 분리. | `StyleWorkout.tsx`, `App.tsx`, `services/geminiService.ts` | ✅ Yes |
@@ -81,3 +78,4 @@
 | 2024-05-22 | **보정된 현실성 (Aspirational Realism) v5.9** | **Prompt Upgrade**: 체형별 긍정적 시각 묘사(Curvy, Athletic 등)를 프롬프트에 자동 적용. | `services/geminiService.ts` | ✅ Yes |
 | 2024-05-22 | **API 할당량 보호 v6.0** | **Rate Limit Fix**: 이미지 생성을 병렬(`Promise.all`)에서 순차 실행으로 변경하고 1초 지연을 추가. | `services/geminiService.ts` | ✅ Yes |
 | 2024-05-22 | **AI 호출 최적화 v6.1** | **Call Fix**: 자동 API 호출 차단. Refresh 버튼에만 연결. | `services/engine.ts`, `App.tsx` | ✅ Yes |
+| 2024-05-22 | **OpenAI Split-Brain v6.2** | **Dual Model Architecture**: 비용 효율(mini)과 전문성(High-Spec Style)을 동시에 잡기 위해 API 호출을 이원화. | `services/geminiService.ts` | ✅ Yes |

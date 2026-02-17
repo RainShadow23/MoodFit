@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { UserProfile, MBTI, BodyTarget, Gender, BoneStructure, Language } from '../types';
+import { UserProfile, MBTI, BodyTarget, Gender, BoneStructure, Language, AIProvider } from '../types';
 import { t } from '../i18n';
-import { GoogleGenAI } from "@google/genai";
+import { generateImage } from '../services/geminiService'; // Use the shared service
 
 interface Props {
   user: UserProfile;
@@ -9,9 +9,6 @@ interface Props {
   onClose: () => void;
 }
 
-// FINAL FIX: Strict adherence to verified assets only.
-// Waist: Reverted to LH3 (Russian Twist) - Confirmed working by user.
-// Legs: Switched to ID from constants.ts (Leg Raises) - Project verified asset.
 const STATIC_ASSETS: Record<BodyTarget, string> = {
     [BodyTarget.Waist]: "https://plus.unsplash.com/premium_photo-1663045673565-a698be541699",
     [BodyTarget.Arms]: "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?q=80&w=600&auto=format&fit=crop", 
@@ -40,44 +37,27 @@ const ProfileSetup: React.FC<Props> = ({ user, onUpdate, onClose }) => {
     setGeneratingTarget(target);
 
     try {
-        const apiKey = process.env.API_KEY || '';
-        const ai = new GoogleGenAI({ apiKey });
-        
+        // Dynamically set gender term
+        const genderTerm = user.gender === Gender.Female ? "woman" : "man";
         const promptMap: Record<BodyTarget, string> = {
-            [BodyTarget.Waist]: "Fitness photography, woman doing russian twists core exercise, gym lighting, high detail, 4k",
-            [BodyTarget.Arms]: "Fitness photography, woman lifting dumbbells, arm workout, gym lighting, 4k",
-            [BodyTarget.Legs]: "Fitness photography, woman doing leg raises, strong legs, gym atmosphere, 4k",
-            [BodyTarget.FullBody]: "Fitness photography, full body yoga stretch, wellness studio, morning light, 4k"
+            [BodyTarget.Waist]: `Fitness photography, ${genderTerm} doing russian twists core exercise, gym lighting, high detail, 4k`,
+            [BodyTarget.Arms]: `Fitness photography, ${genderTerm} lifting dumbbells, arm workout, gym lighting, 4k`,
+            [BodyTarget.Legs]: `Fitness photography, ${genderTerm} doing leg raises, strong legs, gym atmosphere, 4k`,
+            [BodyTarget.FullBody]: `Fitness photography, full body yoga stretch, ${genderTerm}, wellness studio, morning light, 4k`
         };
 
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash-image',
-            contents: {
-                parts: [{ text: promptMap[target] }]
-            }
-        });
+        // Call the shared service which handles switching internally based on user.aiProvider
+        const imageUrl = await generateImage(promptMap[target], "1:1", user.aiProvider);
 
-        let base64Image = "";
-        if (response.candidates?.[0]?.content?.parts) {
-            for (const part of response.candidates[0].content.parts) {
-                if (part.inlineData) {
-                    base64Image = part.inlineData.data;
-                    break;
-                }
-            }
-        }
-
-        if (base64Image) {
-            const imageUrl = `data:image/png;base64,${base64Image}`;
+        if (imageUrl) {
             setAiImages(prev => ({ ...prev, [target]: imageUrl }));
         } else {
-            console.error("No image data found");
-            alert("AI could not generate an image.");
+            alert("AI could not generate an image. Please check API Key.");
         }
 
     } catch (error) {
         console.error("Failed to generate image:", error);
-        alert("Generation failed. Check API Key.");
+        alert("Generation failed.");
     } finally {
         setGeneratingTarget(null);
     }
@@ -132,6 +112,25 @@ const ProfileSetup: React.FC<Props> = ({ user, onUpdate, onClose }) => {
 
         <main className="flex-1 px-6 space-y-10 pt-4">
             
+            {/* 0. Name Input (New) */}
+            <section className="bg-white dark:bg-white/5 p-4 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-peach-light dark:bg-primary/20 flex items-center justify-center text-2xl animate-bounce-slow">
+                    👋
+                </div>
+                <div className="flex-1">
+                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">
+                        {t(user.language, 'name_label')}
+                    </label>
+                    <input
+                        type="text"
+                        value={user.name}
+                        onChange={(e) => onUpdate({ name: e.target.value })}
+                        placeholder="Enter your name"
+                        className="w-full bg-transparent text-lg font-bold text-gray-900 dark:text-white focus:outline-none placeholder-gray-300 dark:placeholder-gray-600"
+                    />
+                </div>
+            </section>
+
             {/* 1. Physical Identity */}
             <section className="space-y-4">
                 <div className="flex items-center gap-2">
@@ -264,7 +263,7 @@ const ProfileSetup: React.FC<Props> = ({ user, onUpdate, onClose }) => {
                     {user.useAI && (
                          <div className="flex items-center gap-1 bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
                             <span className="material-icons-round text-[10px]">auto_awesome</span>
-                            <span>AI Gen</span>
+                            <span>{user.aiProvider} Gen</span>
                          </div>
                     )}
                 </div>
@@ -399,18 +398,44 @@ const ProfileSetup: React.FC<Props> = ({ user, onUpdate, onClose }) => {
              {/* System Preferences */}
              <section className="pt-6 border-t border-gray-100 dark:border-white/5 space-y-4">
                  
-                 {/* AI Toggle */}
-                 <div className="flex items-center justify-between p-2 bg-gray-50 dark:bg-white/5 rounded-xl">
-                     <div>
-                        <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t(user.language, 'ai_engine')}</h3>
-                        <p className="text-[10px] text-gray-400">{t(user.language, 'ai_desc')}</p>
+                 {/* AI Toggle + Provider Selector */}
+                 <div className="flex flex-col gap-3 p-3 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/5">
+                     <div className="flex items-center justify-between">
+                         <div>
+                            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t(user.language, 'ai_engine')}</h3>
+                            <p className="text-[10px] text-gray-400">{t(user.language, 'ai_desc')}</p>
+                         </div>
+                         <button 
+                            onClick={() => onUpdate({ useAI: !user.useAI })}
+                            className={`w-10 h-6 rounded-full p-0.5 transition-colors ${user.useAI ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-700'}`}
+                         >
+                             <div className={`w-5 h-5 rounded-full bg-white shadow-sm transform transition-transform ${user.useAI ? 'translate-x-4' : 'translate-x-0'}`}></div>
+                         </button>
                      </div>
-                     <button 
-                        onClick={() => onUpdate({ useAI: !user.useAI })}
-                        className={`w-10 h-6 rounded-full p-0.5 transition-colors ${user.useAI ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-700'}`}
-                     >
-                         <div className={`w-5 h-5 rounded-full bg-white shadow-sm transform transition-transform ${user.useAI ? 'translate-x-4' : 'translate-x-0'}`}></div>
-                     </button>
+                     
+                     {/* Provider Switcher (Visible only when AI is ON) */}
+                     {user.useAI && (
+                         <div className="flex bg-white dark:bg-black/20 p-1 rounded-lg border border-gray-200 dark:border-white/5">
+                            <button
+                                onClick={() => onUpdate({ aiProvider: AIProvider.Gemini })}
+                                className={`flex-1 py-2 rounded-md text-[10px] font-bold transition-all flex items-center justify-center gap-1 ${
+                                    user.aiProvider === AIProvider.Gemini ? 'bg-indigo-500 text-white shadow-sm' : 'text-gray-400'
+                                }`}
+                            >
+                                <span className="material-symbols-rounded text-sm">bolt</span>
+                                Gemini (Speed)
+                            </button>
+                            <button
+                                onClick={() => onUpdate({ aiProvider: AIProvider.OpenAI })}
+                                className={`flex-1 py-2 rounded-md text-[10px] font-bold transition-all flex items-center justify-center gap-1 ${
+                                    user.aiProvider === AIProvider.OpenAI ? 'bg-green-600 text-white shadow-sm' : 'text-gray-400'
+                                }`}
+                            >
+                                <span className="material-symbols-rounded text-sm">psychology</span>
+                                GPT-4o (Quality)
+                            </button>
+                         </div>
+                     )}
                  </div>
 
                  {/* Language Toggle */}

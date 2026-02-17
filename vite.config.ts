@@ -7,11 +7,13 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react()],
     define: {
-      // Polyfill process.env.API_KEY so the existing code continues to work
-      'process.env.API_KEY': JSON.stringify(env.API_KEY)
+      // Expose API Keys securely
+      'process.env.API_KEY': JSON.stringify(env.API_KEY), // Default / Fallback
+      'process.env.OPENAI_API_KEY': JSON.stringify(env.OPENAI_API_KEY), // Specific for OpenAI
+      'process.env.GOOGLE_API_KEY': JSON.stringify(env.GOOGLE_API_KEY)  // Specific for Google
     },
     build: {
-      outDir: 'dist', // Explicitly set output directory for Cloudflare
+      outDir: 'dist',
     },
     server: {
       host: true
