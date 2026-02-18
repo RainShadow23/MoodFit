@@ -36,7 +36,8 @@
 | ✅ | API Key Security | `functions/api/`, `geminiService.ts` | Cloudflare Functions Proxy 도입 (OpenAI Key 클라이언트 노출 제거) |
 | ✅ | Image Gen Prompt | `services/geminiService.ts` | 체형(Body Type) 반영 프롬프트 강화, OpenAI 모델 파라미터 최적화 |
 | ✅ | Item Emojis | `screens/StyleWorkout.tsx` | 의상 아이템 한국어 키워드 매칭 및 이모지 매핑 오류 수정 |
-| ⏸️ | PWA / Offline | `sw.js`, `manifest.json` | (보류) 배포 후 안정화 단계에서 진행 |
+| ✅ | Branding | `index.html`, `LoginGate.tsx` | 로고 심볼/텍스트, 파비콘, PWA 아이콘 적용 (이미지 파일 필요) |
+| ⏸️ | PWA / Offline | `sw.js`, `manifest.json` | (일부 적용) 아이콘 설정 완료, 서비스 워커는 보류 |
 | 🚧 | **칼로리 트래커** | `screens/DietRecipe.tsx` | 현재 정적 데이터 표시. 실제 기록 기능 연동 필요 |
 | 🚧 | **운동 타이머** | `screens/StyleWorkout.tsx` | 운동 가이드 화면에 카운트다운 타이머 기능 추가 필요 |
 

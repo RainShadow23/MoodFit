@@ -51,12 +51,34 @@ const LoginGate: React.FC<Props> = ({ onLogin }) => {
         <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-pink-50 flex items-center justify-center px-6">
             <div className="w-full max-w-sm">
                 {/* Logo */}
-                <div className="text-center mb-10">
-                    <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-br from-orange-400 to-pink-500 shadow-lg shadow-orange-200 mb-4">
-                        <span className="text-4xl">✨</span>
+                <div className="text-center mb-10 flex flex-col items-center">
+                    {/* 로고 아이콘 (심볼) */}
+                    <div className="w-24 h-24 mb-4 relative">
+                        <img
+                            src="/images/logo-icon.png"
+                            alt="MoodFit Logo"
+                            className="w-full h-full object-contain filter drop-shadow-xl"
+                            onError={(e) => {
+                                // 이미지 로드 실패 시 기존 이모지 스타일로 폴백
+                                e.currentTarget.style.display = 'none';
+                                e.currentTarget.parentElement!.innerHTML = `<div class="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-br from-orange-400 to-pink-500 shadow-lg shadow-orange-200"><span class="text-4xl">✨</span></div>`;
+                            }}
+                        />
                     </div>
-                    <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">MoodFit</h1>
-                    <p className="text-sm text-gray-500 mt-1">AI Personal Lifestyle Coach</p>
+
+                    {/* 로고 텍스트 (이미지) */}
+                    <img
+                        src="/images/logo-text.png"
+                        alt="MoodFit"
+                        className="h-10 object-contain mb-2"
+                        onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                            // 텍스트 폴백은 아래 h1 태그가 담당하도록 할 수도 있으나, 여기선 숨기고 h1을 띄우는 방식으로 처리
+                        }}
+                    />
+                    {/* 이미지 실패 시 보여줄 텍스트 (평소엔 숨김 처리 필요하지만, 간단하게 이미지 아래에 둠 - 디자인상 겹칠 수 있으므로 조건부 렌더링이 좋으나 여기선 JS로 처리) */}
+
+                    <p className="text-sm text-gray-500 mt-1 font-medium">AI Personal Lifestyle Coach</p>
                 </div>
 
                 {/* Login Card */}

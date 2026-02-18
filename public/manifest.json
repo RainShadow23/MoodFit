@@ -1,0 +1,21 @@
+{
+    "name": "MoodFit - AI Personal Stylist",
+    "short_name": "MoodFit",
+    "description": "Your AI-powered personal lifestyle coach for fashion, diet, and wellness.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#fffaf5",
+    "theme_color": "#ee6c2b",
+    "icons": [
+        {
+            "src": "/images/logo-icon.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/images/logo-icon.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}
