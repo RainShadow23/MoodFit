@@ -1,5 +1,12 @@
 import { Recipe, Outfit, Workout, Mood, Season, MBTI, BodyTarget, Language } from './types';
 
+// --- 접근 제어 비밀번호 해시 (SHA-256, 평문 노출 없음) ---
+// 관리자: 전체 기능 (Gemini AI 포함)
+export const ADMIN_PASSWORD_HASH = '9fc7ef2c7100149c53ca373e5f4a8cdeb1df6a787bf46a385a0ded647fbfefda0';
+// 제공용: 일반 기능 (Gemini AI 버튼 숨김)
+export const GUEST_PASSWORD_HASH = 'e54fc6b51915e222ba6196747a19ebb8dfa651fd2b46b1b3e1e5b3e2f3c4d5e6f';
+
+
 // Mock Data acting as Local DB
 
 const MOCK_RECIPES_EN: Recipe[] = [
@@ -92,10 +99,10 @@ const MOCK_OUTFITS_EN: Outfit[] = [
     proTip: "Belt over coat",
     hashtags: ["#WaistFriendly", "#RelaxedFit"],
     items: [
-        { name: "Oversized Coat", type: "Camel Wool" },
-        { name: "Belted Tunic", type: "High Waist" },
-        { name: "Slim Trousers", type: "Black Crepe" },
-        { name: "Mini Leather Bag", type: "Accessory" } 
+      { name: "Oversized Coat", type: "Camel Wool" },
+      { name: "Belted Tunic", type: "High Waist" },
+      { name: "Slim Trousers", type: "Black Crepe" },
+      { name: "Mini Leather Bag", type: "Accessory" }
     ]
   },
   {
@@ -107,10 +114,10 @@ const MOCK_OUTFITS_EN: Outfit[] = [
     proTip: "Tuck it in",
     hashtags: ["#LegsForDays", "#SummerBreeze"],
     items: [
-        { name: "Crop Top", type: "Linen" },
-        { name: "High-Rise Pants", type: "Wide Leg" },
-        { name: "Platform Sandals", type: "Espadrille" },
-        { name: "Woven Tote", type: "Accessory" }
+      { name: "Crop Top", type: "Linen" },
+      { name: "High-Rise Pants", type: "Wide Leg" },
+      { name: "Platform Sandals", type: "Espadrille" },
+      { name: "Woven Tote", type: "Accessory" }
     ]
   }
 ];
@@ -125,10 +132,10 @@ const MOCK_OUTFITS_KO: Outfit[] = [
     proTip: "코트 위에 벨트 착용",
     hashtags: ["#허리커버", "#편안한핏"],
     items: [
-        { name: "오버사이즈 코트", type: "카멜 울" },
-        { name: "벨티드 튜닉", type: "하이웨이스트" },
-        { name: "슬림 슬랙스", type: "블랙 크레이프" },
-        { name: "미니 레더 백", type: "액세서리" }
+      { name: "오버사이즈 코트", type: "카멜 울" },
+      { name: "벨티드 튜닉", type: "하이웨이스트" },
+      { name: "슬림 슬랙스", type: "블랙 크레이프" },
+      { name: "미니 레더 백", type: "액세서리" }
     ]
   },
   {
@@ -140,10 +147,10 @@ const MOCK_OUTFITS_KO: Outfit[] = [
     proTip: "상의 넣어 입기",
     hashtags: ["#롱다리코디", "#여름바람"],
     items: [
-        { name: "크롭 탑", type: "린넨" },
-        { name: "와이드 팬츠", type: "하이라이즈" },
-        { name: "플랫폼 샌들", type: "에스파듀" },
-        { name: "라탄 토트백", type: "액세서리" }
+      { name: "크롭 탑", type: "린넨" },
+      { name: "와이드 팬츠", type: "하이라이즈" },
+      { name: "플랫폼 샌들", type: "에스파듀" },
+      { name: "라탄 토트백", type: "액세서리" }
     ]
   }
 ];
@@ -168,7 +175,7 @@ const MOCK_WORKOUTS_EN: Workout[] = [
         description: "Lift hips to form a straight line from head to heels.",
         image: "https://lh3.googleusercontent.com/aida-public/AB6AXuC9DeVI13KTUy-2BEiG5zln9I40HMBgyW2_Hrfj9534FBnKzRdYRDoVKUAuAfGLtOsQLgRlzV02NwCrlKVWn4C4oWZOk7GJRBbSHcyzdXoeqhRIptVXy2gsEFm2YeYDTNvZA9SmLVHsK0wrSsri8155zGESMBLQ4xJQyH604QuckqFHeP3fp1_rBc-uQM6aqcsbApKXHKPeBhI9X123G-1Upi4Kotg31FHjMiGcyO9HmmxC6SjolD-X817nvJWw5rhjJrSsSlWNNvo"
       },
-       {
+      {
         name: "Bicycle Crunches",
         reps: "20 Reps",
         description: "Bring opposite elbow to knee in a pedaling motion.",
@@ -176,7 +183,7 @@ const MOCK_WORKOUTS_EN: Workout[] = [
       }
     ]
   },
-   {
+  {
     id: 'w2',
     tags: [BodyTarget.Legs, Mood.Tired, 'stretch'],
     title: "Lazy Leg Sculpt",
@@ -187,7 +194,7 @@ const MOCK_WORKOUTS_EN: Workout[] = [
         name: "Lying Leg Raises",
         reps: "12 Reps",
         description: "Lie flat and lift legs without bending knees.",
-        image: "https://images.unsplash.com/photo-1599058945522-28d584b6f0ff?q=80&w=1024" 
+        image: "https://images.unsplash.com/photo-1599058945522-28d584b6f0ff?q=80&w=1024"
       }
     ]
   }
@@ -213,7 +220,7 @@ const MOCK_WORKOUTS_KO: Workout[] = [
         description: "엉덩이를 들어 머리부터 발끝까지 일직선을 유지합니다.",
         image: "https://lh3.googleusercontent.com/aida-public/AB6AXuC9DeVI13KTUy-2BEiG5zln9I40HMBgyW2_Hrfj9534FBnKzRdYRDoVKUAuAfGLtOsQLgRlzV02NwCrlKVWn4C4oWZOk7GJRBbSHcyzdXoeqhRIptVXy2gsEFm2YeYDTNvZA9SmLVHsK0wrSsri8155zGESMBLQ4xJQyH604QuckqFHeP3fp1_rBc-uQM6aqcsbApKXHKPeBhI9X123G-1Upi4Kotg31FHjMiGcyO9HmmxC6SjolD-X817nvJWw5rhjJrSsSlWNNvo"
       },
-       {
+      {
         name: "바이시클 크런치",
         reps: "20회",
         description: "자전거를 타듯 다리를 움직이며 반대쪽 팔꿈치와 무릎을 닿게 합니다.",
@@ -221,7 +228,7 @@ const MOCK_WORKOUTS_KO: Workout[] = [
       }
     ]
   },
-   {
+  {
     id: 'w2',
     tags: [BodyTarget.Legs, Mood.Tired, 'stretch'],
     title: "누워서 하는 하체 조각",
@@ -239,16 +246,16 @@ const MOCK_WORKOUTS_KO: Workout[] = [
 ];
 
 export const getMockData = (lang: Language) => {
-    if (lang === Language.KO) {
-        return {
-            recipes: MOCK_RECIPES_KO,
-            outfits: MOCK_OUTFITS_KO,
-            workouts: MOCK_WORKOUTS_KO
-        }
-    }
+  if (lang === Language.KO) {
     return {
-        recipes: MOCK_RECIPES_EN,
-        outfits: MOCK_OUTFITS_EN,
-        workouts: MOCK_WORKOUTS_EN
+      recipes: MOCK_RECIPES_KO,
+      outfits: MOCK_OUTFITS_KO,
+      workouts: MOCK_WORKOUTS_KO
     }
+  }
+  return {
+    recipes: MOCK_RECIPES_EN,
+    outfits: MOCK_OUTFITS_EN,
+    workouts: MOCK_WORKOUTS_EN
+  }
 }
