@@ -19,6 +19,14 @@ const App: React.FC = () => {
         return (saved === 'admin' || saved === 'guest') ? saved : null;
     });
 
+    // 로그인 핸들러: guest는 aiProvider를 OpenAI로 강제 설정
+    const handleLogin = (role: UserRole) => {
+        setUserRole(role);
+        if (role === 'guest') {
+            setUser(prev => ({ ...prev, aiProvider: AIProvider.OpenAI }));
+        }
+    };
+
     // Navigation State
     const [currentTab, setCurrentTab] = useState<'home' | 'style' | 'diet'>('home');
     const [showProfileModal, setShowProfileModal] = useState(false);
@@ -169,7 +177,7 @@ const App: React.FC = () => {
 
     // 로그인 전: LoginGate만 표시
     if (!userRole) {
-        return <LoginGate onLogin={setUserRole} />;
+        return <LoginGate onLogin={handleLogin} />;
     }
 
     return (
