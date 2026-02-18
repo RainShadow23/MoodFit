@@ -1,0 +1,5 @@
+{
+  "name": "MoodFit",
+  "description": "A hyper-personalized lifestyle app combining mood, body metrics, and MBTI to curate daily workouts, style, and nutrition.",
+  "requestFramePermissions": []
+}
