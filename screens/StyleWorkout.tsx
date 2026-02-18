@@ -28,36 +28,47 @@ const StyleWorkout: React.FC<Props> = ({ outfit, workout, recipe, quote, user, o
     // --- EMOJI LOGIC 1: OUTFIT ---
     const getItemEmoji = (name: string, type: string) => {
         const text = `${name} ${type}`.toLowerCase();
-        if (text.includes('hat') || text.includes('cap') || text.includes('beanie') || text.includes('beret')) return '🧢';
-        if (text.includes('coat') || text.includes('trench') || text.includes('parka') || text.includes('overcoat')) return '🧥';
-        if (text.includes('jacket') || text.includes('blazer') || text.includes('windbreaker') || text.includes('cardigan')) return '🧥';
-        if (text.includes('dress') || text.includes('gown') || text.includes('frock')) return '👗';
-        if (text.includes('jumpsuit') || text.includes('romper') || text.includes('kimono')) return '👘';
-        if (text.includes('suit') || text.includes('tuxedo')) return '👔';
-        if (text.includes('hoodie') || text.includes('sweatshirt')) return '🧥';
-        if (text.includes('sweater') || text.includes('knit')) return '🧶';
-        if (text.includes('shirt') || text.includes('blouse') || text.includes('top') || text.includes('tee') || text.includes('tunic') || text.includes('camisole') || text.includes('tank') || text.includes('crop')) return '👚';
-        if (text.includes('vest')) return '🦺';
-        if (text.includes('skirt') || text.includes('mini')) return '👗';
-        if (text.includes('jeans') || text.includes('denim')) return '👖';
-        if (text.includes('pant') || text.includes('trouser') || text.includes('legging') || text.includes('jogger') || text.includes('short') || text.includes('slack') || text.includes('bottom')) return '👖';
-        if (text.includes('boot')) return '👢';
-        if (text.includes('heel') || text.includes('pump') || text.includes('stiletto')) return '👠';
-        if (text.includes('sandal') || text.includes('flip') || text.includes('slide') || text.includes('espadrille')) return '👡';
-        if (text.includes('sneaker') || text.includes('trainer') || text.includes('runner') || text.includes('shoe') || text.includes('loafer') || text.includes('flat') || text.includes('canvas')) return '👟';
-        if (text.includes('backpack') || text.includes('rucksack')) return '🎒';
-        if (text.includes('bag') || text.includes('tote') || text.includes('purse') || text.includes('clutch') || text.includes('handbag') || text.includes('satchel')) return '👜';
-        if (text.includes('scarf') || text.includes('muffler') || text.includes('shawl')) return '🧣';
-        if (text.includes('glove') || text.includes('mitten')) return '🧤';
-        if (text.includes('glass') || text.includes('shade') || text.includes('spectacle')) return '🕶️';
-        if (text.includes('watch') || text.includes('timepiece')) return '⌚';
-        if (text.includes('necklace') || text.includes('pendant') || text.includes('choker')) return '📿';
-        if (text.includes('ring')) return '💍';
-        if (text.includes('earring') || text.includes('jewelry') || text.includes('bracelet')) return '💎';
-        if (text.includes('tie') || text.includes('bow') || text.includes('ribbon')) return '🎀';
-        if (text.includes('belt')) return 'lz';
+        // 모자류
+        if (text.includes('hat') || text.includes('cap') || text.includes('beanie') || text.includes('beret') || text.includes('모자') || text.includes('비니') || text.includes('베레')) return '🧢';
+        // 아우터
+        if (text.includes('coat') || text.includes('trench') || text.includes('parka') || text.includes('overcoat') || text.includes('코트') || text.includes('파카') || text.includes('트렌치')) return '🧥';
+        if (text.includes('jacket') || text.includes('blazer') || text.includes('windbreaker') || text.includes('cardigan') || text.includes('재킷') || text.includes('블레이저') || text.includes('가디건') || text.includes('점퍼') || text.includes('바람막이')) return '🧥';
+        // 원피스/점프수트
+        if (text.includes('dress') || text.includes('gown') || text.includes('원피스') || text.includes('드레스')) return '👗';
+        if (text.includes('jumpsuit') || text.includes('romper') || text.includes('kimono') || text.includes('점프수트') || text.includes('기모노')) return '👘';
+        // 정장
+        if (text.includes('suit') || text.includes('tuxedo') || text.includes('수트') || text.includes('턱시도') || text.includes('정장')) return '👔';
+        // 니트/후드
+        if (text.includes('hoodie') || text.includes('sweatshirt') || text.includes('후드') || text.includes('맨투맨') || text.includes('스웨트')) return '🧥';
+        if (text.includes('sweater') || text.includes('knit') || text.includes('터틀넥') || text.includes('니트') || text.includes('스웨터')) return '🧶';
+        // 상의
+        if (text.includes('shirt') || text.includes('blouse') || text.includes('top') || text.includes('tee') || text.includes('tunic') || text.includes('camisole') || text.includes('tank') || text.includes('crop') || text.includes('셔츠') || text.includes('블라우스') || text.includes('티셔츠') || text.includes('탑') || text.includes('크롭') || text.includes('나시')) return '👚';
+        if (text.includes('vest') || text.includes('조끼')) return '🦺';
+        // 하의
+        if (text.includes('skirt') || text.includes('mini') || text.includes('스커트') || text.includes('미니')) return '👗';
+        if (text.includes('jeans') || text.includes('denim') || text.includes('청바지') || text.includes('데님')) return '👖';
+        if (text.includes('pant') || text.includes('trouser') || text.includes('legging') || text.includes('jogger') || text.includes('short') || text.includes('slack') || text.includes('bottom') || text.includes('바지') || text.includes('팬츠') || text.includes('레깅스') || text.includes('조거') || text.includes('슬랙스') || text.includes('반바지')) return '👖';
+        // 신발
+        if (text.includes('boot') || text.includes('부츠')) return '👢';
+        if (text.includes('heel') || text.includes('pump') || text.includes('stiletto') || text.includes('힐') || text.includes('펌프스')) return '👠';
+        if (text.includes('sandal') || text.includes('flip') || text.includes('slide') || text.includes('espadrille') || text.includes('샌들') || text.includes('슬리퍼')) return '👡';
+        if (text.includes('sneaker') || text.includes('trainer') || text.includes('runner') || text.includes('shoe') || text.includes('loafer') || text.includes('flat') || text.includes('canvas') || text.includes('스니커') || text.includes('운동화') || text.includes('로퍼') || text.includes('신발') || text.includes('플랫')) return '👟';
+        // 가방
+        if (text.includes('backpack') || text.includes('rucksack') || text.includes('백팩') || text.includes('배낭')) return '🎒';
+        if (text.includes('bag') || text.includes('tote') || text.includes('purse') || text.includes('clutch') || text.includes('handbag') || text.includes('satchel') || text.includes('가방') || text.includes('토트') || text.includes('클러치') || text.includes('숄더')) return '👜';
+        // 액세서리
+        if (text.includes('scarf') || text.includes('muffler') || text.includes('shawl') || text.includes('스카프') || text.includes('머플러') || text.includes('숄')) return '🧣';
+        if (text.includes('glove') || text.includes('mitten') || text.includes('장갑')) return '🧤';
+        if (text.includes('glass') || text.includes('shade') || text.includes('spectacle') || text.includes('선글라스') || text.includes('안경')) return '🕶️';
+        if (text.includes('watch') || text.includes('timepiece') || text.includes('시계')) return '⌚';
+        if (text.includes('necklace') || text.includes('pendant') || text.includes('choker') || text.includes('목걸이') || text.includes('초커')) return '📿';
+        if (text.includes('ring') || text.includes('반지')) return '💍';
+        if (text.includes('earring') || text.includes('jewelry') || text.includes('bracelet') || text.includes('귀걸이') || text.includes('팔찌') || text.includes('주얼리')) return '💎';
+        if (text.includes('tie') || text.includes('bow') || text.includes('ribbon') || text.includes('넥타이') || text.includes('리본')) return '🎀';
+        if (text.includes('belt') || text.includes('벨트')) return '🪢';
         return '✨';
     }
+
 
     const getWorkoutEmoji = (title: string, tags: string[] = []) => {
         const text = `${title} ${tags.join(' ')}`.toLowerCase();
@@ -213,8 +224,8 @@ const StyleWorkout: React.FC<Props> = ({ outfit, workout, recipe, quote, user, o
                                 key={s}
                                 onClick={() => onSeasonChange(s)}
                                 className={`px-5 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap border ${user.currentSeason === s
-                                        ? 'bg-peach-vibrant border-peach-vibrant text-white shadow-sm'
-                                        : 'bg-white dark:bg-white/5 border-gray-200 dark:border-white/10 text-gray-500 dark:text-gray-400 hover:bg-peach-light dark:hover:bg-white/10'
+                                    ? 'bg-peach-vibrant border-peach-vibrant text-white shadow-sm'
+                                    : 'bg-white dark:bg-white/5 border-gray-200 dark:border-white/10 text-gray-500 dark:text-gray-400 hover:bg-peach-light dark:hover:bg-white/10'
                                     }`}
                             >
                                 {seasonLabels[s]}

@@ -7,8 +7,11 @@ declare const __GOOGLE_KEY__: string;
 declare const __OPENAI_KEY__: string;
 
 // --- Key Retrieval (환경변수에서만 읽음 - 하드코딩 금지) ---
-const GOOGLE_API_KEY: string = (typeof __GOOGLE_KEY__ !== 'undefined' && __GOOGLE_KEY__) ? __GOOGLE_KEY__ : "";
-const OPENAI_API_KEY: string = (typeof __OPENAI_KEY__ !== 'undefined' && __OPENAI_KEY__) ? __OPENAI_KEY__ : "";
+// sanitize: ASCII 범위(0x20~0x7E) 문자만 허용, 공백/주석 제거
+const sanitizeKey = (key: string): string => key.replace(/[^\x20-\x7E]/g, '').trim();
+const GOOGLE_API_KEY: string = sanitizeKey((typeof __GOOGLE_KEY__ !== 'undefined' && __GOOGLE_KEY__) ? __GOOGLE_KEY__ : "");
+const OPENAI_API_KEY: string = sanitizeKey((typeof __OPENAI_KEY__ !== 'undefined' && __OPENAI_KEY__) ? __OPENAI_KEY__ : "");
+
 
 console.log("[GeminiService] Final Config Status:", {
     OpenAI: OPENAI_API_KEY ? `✅ Ready (${OPENAI_API_KEY.startsWith('sk-proj') ? 'Standard' : 'Custom'})` : "❌ Missing",
@@ -92,10 +95,10 @@ const cleanJsonString = (str: string): string => {
 
 const getBodyVisualDescriptor = (boneStructure: BoneStructure): string => {
     switch (boneStructure) {
-        case BoneStructure.Ectomorph: return "slim, slender, tall fashion model physique, elegant posture";
-        case BoneStructure.Endomorph: return "curvy, voluptuous, confident plus-size fashion model, flattering silhouette, body positive";
-        case BoneStructure.Mesomorph: return "athletic, toned, fit muscular physique, strong posture";
-        default: return "balanced, natural healthy body type, relatable fashion look";
+        case BoneStructure.Ectomorph: return "slim, slender, lean body type, long limbs, narrow shoulders, elegant posture, tall fashion model physique";
+        case BoneStructure.Endomorph: return "curvy, full-figured, plus-size body, rounder silhouette, soft curves, body-positive fashion model, wider hips and shoulders";
+        case BoneStructure.Mesomorph: return "athletic, muscular, broad shoulders, defined physique, toned body, strong posture, fit sports model";
+        default: return "average build, natural healthy body type, balanced proportions";
     }
 };
 
@@ -118,7 +121,7 @@ const generateImageOpenAI = async (prompt: string, aspectRatio: string): Promise
 
     const openai = new OpenAI({ apiKey: OPENAI_API_KEY, dangerouslyAllowBrowser: true });
 
-    // [MODEL SPEC]: gpt-image-1-mini (Azure/Foundry)
+    // [MODEL SPEC]: gpt-image-1-mini
     const modelName = "gpt-image-1-mini";
 
     try {
@@ -277,8 +280,37 @@ export const fetchAIRecommendations = async (user: UserProfile): Promise<Recomme
     const languageInstruction = `CRITICAL: All text content (titles, descriptions, steps, advice) MUST be written in ${languageName}. Do not use English unless it is a proper noun.`;
 
     const systemInstruction = `You are a hyper-personalized lifestyle coach. Output valid JSON only. ${languageInstruction}`;
-    const contextPrompt = `Profile: ${user.gender}, ${user.mbti}, ${user.currentMood}, ${user.currentSeason}, ${user.boneStructure} body, Target: ${user.targetArea}.`;
 
+    // 체형별 스타일 가이드 (코디 다양성 강화)
+    const getStyleGuide = (boneStructure: BoneStructure, gender: Gender): string => {
+        const g = gender === Gender.Female ? "women" : "men";
+        switch (boneStructure) {
+            case BoneStructure.Ectomorph:
+                return `Style guide for slim/lean ${g}: Use layering to add visual bulk. Prefer horizontal stripes, chunky knits, cargo pants, oversized silhouettes, puffer jackets, wide-leg trousers. Avoid overly tight or clingy fabrics.`;
+            case BoneStructure.Endomorph:
+                return `Style guide for full-figured/plus-size ${g}: Use vertical lines and monochromatic looks to elongate. Prefer A-line cuts, wrap styles, structured blazers, dark wash denim, flowy midi skirts, empire waist. Avoid overly baggy or shapeless pieces.`;
+            case BoneStructure.Mesomorph:
+                return `Style guide for athletic/muscular ${g}: Highlight the physique with well-fitted pieces. Prefer fitted tees, slim-cut chinos, athletic wear, bomber jackets, tailored suits, compression-style tops. Avoid overly boxy or shapeless cuts.`;
+            default:
+                return `Style guide for balanced body type ${g}: Most silhouettes work well. Experiment freely with proportions, mixing fitted and relaxed pieces.`;
+        }
+    };
+
+    const styleGuide = getStyleGuide(user.boneStructure, user.gender);
+    const randomSeed = Math.floor(Math.random() * 10000); // 매 요청마다 다른 결과 유도
+
+    const contextPrompt = `
+        Profile:
+        - Gender: ${user.gender}
+        - Body Type: ${user.boneStructure}
+        - Height: ${user.height}cm, Weight: ${user.weight}kg
+        - MBTI: ${user.mbti} (personality affects style preference)
+        - Current Mood: ${user.currentMood}
+        - Season: ${user.currentSeason}
+        - Target Area: ${user.targetArea}
+        - Taste Preferences: ${user.tastes?.join(', ')}
+        - Variation seed: ${randomSeed}
+    `;
 
     // --- PROMPT 1: LIFESTYLE (Quote, Recipe, Workout) ---
     const promptLifestyle = `
@@ -294,15 +326,24 @@ export const fetchAIRecommendations = async (user: UserProfile): Promise<Recomme
     `;
 
     // --- PROMPT 2: STYLE (Outfit Only) ---
-    // Splitting this ensures the model focuses purely on fashion details without getting tired.
     const promptStyle = `
         ${contextPrompt}
-        Task: Generate specialized Fashion Outfit Advice (NO RECIPE/WORKOUT).
+        Task: Generate a UNIQUE and CREATIVE Fashion Outfit for ${user.currentSeason} season.
+        
+        IMPORTANT DIVERSITY RULES:
+        - This must be a COMPLETELY DIFFERENT outfit style from generic recommendations.
+        - The variation seed is ${randomSeed} — use this to generate a unique combination.
+        - Do NOT suggest basic/generic outfits like "white t-shirt + jeans".
+        - Be specific with colors, materials, and brands/styles (e.g., "Camel wool overcoat", "Burgundy corduroy trousers").
+        
+        Body Type Styling Guide:
+        ${styleGuide}
         
         Outfit Constraints:
-        1. "items": MUST be an array of at least 4 objects (e.g., Top, Bottom, Shoes, Accessory). 
+        1. "items": MUST be an array of at least 5 objects with specific item names (e.g., "Olive green cargo pants", not just "pants").
         2. DO NOT return a simple string description for items. It MUST be a JSON array.
-        3. "description": Explain WHY this looks good for a ${user.boneStructure} body type.
+        3. "description": Explain specifically WHY each piece works for a ${user.boneStructure} body type.
+        4. "title": Must be a creative outfit name reflecting the season and body type (e.g., "Autumn Layered Streetwear for Athletic Build").
     `;
 
     try {
@@ -463,11 +504,9 @@ export const fetchAIRecommendations = async (user: UserProfile): Promise<Recomme
 
         let outfitPrompt = "";
 
-        if (provider === AIProvider.OpenAI) {
-            outfitPrompt = `Fashion photography, full body shot of a model wearing ${outfitTitle}. Items: ${outfitItems.map((i: any) => i.name || 'clothes').join(', ')}. Season: ${user.currentSeason}. Clean studio background, high quality, editorial look.`;
-        } else {
+        {
             const bodyDescriptor = getBodyVisualDescriptor(user.boneStructure);
-            outfitPrompt = `Fashion photography, full body shot of a ${genderTerm} model with ${bodyDescriptor} wearing ${outfitTitle}. Items: ${outfitItems.map((i: any) => i.name || 'clothes').join(', ')}. Season: ${user.currentSeason}. Natural lighting, high fashion editorial, clean background.`;
+            outfitPrompt = `Fashion photography, full body shot of a ${genderTerm} with ${bodyDescriptor} wearing ${outfitTitle}. Outfit items: ${outfitItems.map((i: any) => i.name || 'clothes').join(', ')}. Season: ${user.currentSeason}. The body type must be clearly visible and realistic. Clean studio background, high quality editorial fashion photo, full body visible from head to toe.`;
         }
 
         const [outfitImage, recipeImage] = await Promise.all([

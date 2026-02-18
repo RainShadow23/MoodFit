@@ -31,26 +31,26 @@
 | ✅ | **OpenAI Split-Brain v6.2** | `services/geminiService.ts` | 식단/운동/명언: `gpt-4o-mini`, 의상: `gpt-4o` 분리 호출 |
 | ✅ | **Foundry Image Spec v6.3** | `services/geminiService.ts` | `gpt-image-1-mini` 모델 사양 준수 (`response_format` 제거, `quality: medium`) |
 | ✅ | **Foundry Image Size Fix v6.4** | `services/geminiService.ts` | Portrait를 `1024x1536`으로 변경하여 400 에러 해결 |
+| ✅ | Login Gate | `screens/LoginGate.tsx`, `App.tsx`, `constants.ts` | 비밀번호(SHA-256) 기반 접근 제어 (Admin/Guest) |
+| ✅ | API Key Config | `vite.config.ts`, `.env`, `.env.local` | Vite 환경 변수 주입 및 sanitization (공백/주석 제거) |
+| ✅ | Image Gen Prompt | `services/geminiService.ts` | 체형(Body Type) 반영 프롬프트 강화, OpenAI 모델 파라미터 최적화 |
+| ✅ | Item Emojis | `screens/StyleWorkout.tsx` | 의상 아이템 한국어 키워드 매칭 및 이모지 매핑 오류 수정 |
+| 🔄 | PWA / Offline | `sw.js`, `manifest.json` | (예정) 오프라인 지원 및 설치 가능한 웹 앱 구현 |
 | 🚧 | **칼로리 트래커** | `screens/DietRecipe.tsx` | 현재 정적 데이터 표시. 실제 기록 기능 연동 필요 |
 | 🚧 | **운동 타이머** | `screens/StyleWorkout.tsx` | 운동 가이드 화면에 카운트다운 타이머 기능 추가 필요 |
 
 ---
 
-## 2. Tech Stack & Rules
+## 2. Tech Stack & Rules (Updated)
 
-### 기술 스택
-
-| 분류 | 기술 | 버전/상세 |
-|:---:|:---|:---|
-| **Core** | React (Hooks 기반 함수형 컴포넌트) | 18.3.1 |
-| **Language** | TypeScript | 5.5.3 |
-| **Build** | Vite (ESM) | 5.4.1 |
-| **Styling** | Tailwind CSS (다크모드 지원) | - |
-| **AI (Google)** | `@google/genai` SDK | 0.1.0 |
-| **AI (OpenAI)** | `openai` SDK | 4.28.0 |
-| **Storage** | LocalStorage (Key: `luvitt_latest_ai_data`) | 압축 저장 |
-| **Icons** | Material Icons Round, Material Symbols Outlined | CDN |
-| **Localization** | Custom Dictionary Pattern (`i18n.ts`) | KO / EN |
+- **Framework**: React + Vite + TypeScript
+- **Styling**: TailwindCSS (Dark Mode supported)
+- **AI**: Google Gemini (Text/Image), OpenAI (Text/Image) - **Hybrid Strategy**
+- **State Management**: React `useState` + `sessionStorage` (Auth)
+- **Security**:
+  - API Keys: `.env` (Development), Cloudflare Env Vars (Production)
+  - Auth: Client-side SHA-256 Hash (Simple Gate)
+- **Deployment**: Cloudflare Pages
 
 ### AI 모델 구성
 
