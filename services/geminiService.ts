@@ -103,8 +103,11 @@ const getBodyVisualDescriptor = (boneStructure: BoneStructure): string => {
 
 // --- CORE GENERATION FUNCTIONS ---
 
-export const generateImage = async (prompt: string, aspectRatio: string = "1:1", provider: AIProvider = AIProvider.Gemini): Promise<string | null> => {
-    if (provider === AIProvider.OpenAI) {
+export const generateImage = async (prompt: string, aspectRatio: string = "1:1", provider?: AIProvider): Promise<string | null> => {
+    // Provider가 없으면 Key 상태에 따라 자동 결정 (OpenAI 우선)
+    const effectiveProvider = provider || (GOOGLE_API_KEY ? AIProvider.Gemini : AIProvider.OpenAI);
+
+    if (effectiveProvider === AIProvider.OpenAI) {
         return generateImageOpenAI(prompt, aspectRatio);
     } else {
         return generateImageGemini(prompt, aspectRatio);
@@ -200,7 +203,8 @@ const generateImageGemini = async (prompt: string, aspectRatio: string): Promise
 };
 
 export const generateFridgeRecipe = async (ingredients: string, user: UserProfile): Promise<Recipe | null> => {
-    const provider = user.aiProvider || AIProvider.Gemini;
+    // Provider 결정: User Preference -> Google Key Check -> Default to OpenAI
+    const provider = user.aiProvider || (GOOGLE_API_KEY ? AIProvider.Gemini : AIProvider.OpenAI);
     const languageName = user.language === Language.KO ? 'Korean' : 'English';
     const languageInstruction = `IMPORTANT: Output JSON values in ${languageName} language.`;
 
@@ -291,7 +295,8 @@ export const generateFridgeRecipe = async (ingredients: string, user: UserProfil
 };
 
 export const fetchAIRecommendations = async (user: UserProfile): Promise<RecommendationResult | null> => {
-    const provider = user.aiProvider || AIProvider.Gemini;
+    // Provider 결정: User Preference -> Google Key Check -> Default to OpenAI
+    const provider = user.aiProvider || (GOOGLE_API_KEY ? AIProvider.Gemini : AIProvider.OpenAI);
     const languageName = user.language === Language.KO ? 'Korean' : 'English';
     const genderTerm = user.gender === Gender.Female ? "Woman" : "Man";
 
