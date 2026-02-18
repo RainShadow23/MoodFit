@@ -1,20 +1,19 @@
-import OpenAI from "openai";
+// import OpenAI from "openai"; // REMOVED
 import { GoogleGenAI, Type } from "@google/genai";
 import { UserProfile, RecommendationResult, Language, Recipe, BoneStructure, Gender, AIProvider } from "../types";
 
 // --- Global Constants (Injected via Vite or Hardcoded) ---
 declare const __GOOGLE_KEY__: string;
-declare const __OPENAI_KEY__: string;
+// declare const __OPENAI_KEY__: string; // REMOVED
 
 // --- Key Retrieval (환경변수에서만 읽음 - 하드코딩 금지) ---
-// sanitize: ASCII 범위(0x20~0x7E) 문자만 허용, 공백/주석 제거
 const sanitizeKey = (key: string): string => key.replace(/[^\x20-\x7E]/g, '').trim();
 const GOOGLE_API_KEY: string = sanitizeKey((typeof __GOOGLE_KEY__ !== 'undefined' && __GOOGLE_KEY__) ? __GOOGLE_KEY__ : "");
-const OPENAI_API_KEY: string = sanitizeKey((typeof __OPENAI_KEY__ !== 'undefined' && __OPENAI_KEY__) ? __OPENAI_KEY__ : "");
+// const OPENAI_API_KEY: string = ... // REMOVED (Client-side key redundant)
 
 
-console.log("[GeminiService] Final Config Status:", {
-    OpenAI: OPENAI_API_KEY ? `✅ Ready (${OPENAI_API_KEY.startsWith('sk-proj') ? 'Standard' : 'Custom'})` : "❌ Missing",
+console.log("[GeminiService] Config Status:", {
+    OpenAI: "✅ Proxy Ready",
     Google: GOOGLE_API_KEY ? "✅ Ready (Built-in)" : "❌ Missing"
 });
 
@@ -112,15 +111,8 @@ export const generateImage = async (prompt: string, aspectRatio: string = "1:1",
     }
 };
 
-// [EXTERNAL] OpenAI Image Generation
+// [EXTERNAL] OpenAI Image Generation (via Cloudflare Proxy)
 const generateImageOpenAI = async (prompt: string, aspectRatio: string): Promise<string | null> => {
-    if (!OPENAI_API_KEY) {
-        console.warn("OpenAI API Key is missing.");
-        return null;
-    }
-
-    const openai = new OpenAI({ apiKey: OPENAI_API_KEY, dangerouslyAllowBrowser: true });
-
     // [MODEL SPEC]: gpt-image-1-mini
     const modelName = "gpt-image-1-mini";
 
@@ -133,31 +125,40 @@ const generateImageOpenAI = async (prompt: string, aspectRatio: string): Promise
             size = "1536x1024"; // Landscape
         }
 
-        console.log(`[OpenAI] Generating Image with ${modelName} (${size})...`);
+        console.log(`[OpenAI Proxy] Generating Image with ${modelName} (${size})...`);
 
-        const response = await openai.images.generate({
-            model: modelName as any,
-            prompt: prompt,
-            n: 1,
-            size: size,
-            quality: "medium",
-        } as any);
+        // Proxy Call
+        const response = await fetch('/api/openai-image', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                model: modelName,
+                prompt: prompt,
+                n: 1,
+                size: size,
+                quality: "medium",
+                response_format: "b64_json"
+            })
+        });
 
-        const b64Json = (response.data?.[0] as any)?.b64_json;
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error(`[OpenAI Proxy] Image Gen Failed: ${response.status} ${response.statusText}`, errorText);
+            return null;
+        }
+
+        const data = await response.json();
+        const b64Json = (data.data?.[0] as any)?.b64_json;
 
         if (b64Json) {
             return `data:image/png;base64,${b64Json}`;
         }
 
-        console.warn("[OpenAI] No b64_json in response", response);
+        console.warn("[OpenAI Proxy] No b64_json in response", data);
         return null;
 
     } catch (e: any) {
-        if (e?.error?.code === 'content_policy_violation') {
-            console.warn("OpenAI Content Policy Violation. Prompt was too explicit.");
-        } else {
-            console.warn(`OpenAI Image Gen Failed (Model: ${modelName}):`, e);
-        }
+        console.warn(`[OpenAI Proxy] Image Gen Exception:`, e);
         return null;
     }
 };
@@ -205,13 +206,20 @@ export const generateFridgeRecipe = async (ingredients: string, user: UserProfil
         let data;
 
         if (provider === AIProvider.OpenAI) {
-            const openai = new OpenAI({ apiKey: OPENAI_API_KEY, dangerouslyAllowBrowser: true });
-            const completion = await openai.chat.completions.create({
-                model: OPENAI_MODEL_GENERAL,
-                messages: [{ role: "system", content: systemInstruction }, { role: "user", content: prompt }],
-                response_format: { type: "json_object" }
+            // Proxy Call
+            const response = await fetch('/api/openai', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    model: OPENAI_MODEL_GENERAL,
+                    messages: [{ role: "system", content: systemInstruction }, { role: "user", content: prompt }],
+                    response_format: { type: "json_object" }
+                })
             });
-            data = JSON.parse(completion.choices?.[0]?.message?.content || "{}");
+
+            if (!response.ok) throw new Error(`OpenAI Proxy Error: ${response.status}`);
+            const result = await response.json();
+            data = JSON.parse(result.choices?.[0]?.message?.content || "{}");
         } else {
             if (!GOOGLE_API_KEY) throw new Error("Missing Google API Key");
             const ai = new GoogleGenAI({ apiKey: GOOGLE_API_KEY });
@@ -354,24 +362,31 @@ export const fetchAIRecommendations = async (user: UserProfile): Promise<Recomme
         // This fixes Gemini "Lazy JSON" issues by splitting the cognitive load.
 
         if (provider === AIProvider.OpenAI) {
-            if (!OPENAI_API_KEY) throw new Error("Missing OpenAI API Key");
-            const openai = new OpenAI({ apiKey: OPENAI_API_KEY, dangerouslyAllowBrowser: true });
+            // Proxy Calls (Parallel)
 
             // OpenAI still relies on prompt engineering for structure (or response_format json_object)
             const promptLifestyleWithJson = promptLifestyle + `\nOutput JSON: { "quote": { "text": "string", "author": "string" }, "recipe": { "title": "string", "calories": number, "protein": "string", "time": "15 min", "badge": "string", "ingredients": [{"name": "string", "amount": "string"}], "steps": ["string"] }, "workout": { "title": "string", "duration": "string", "intensity": "Low"|"Med"|"High", "exercises": [{"name": "string", "reps": "string", "description": "string"}] } }`;
             const promptStyleWithJson = promptStyle + `\nOutput JSON: { "outfit": { "title": "string", "description": "string", "proTip": "string", "hashtags": ["string"], "items": [{"name": "string", "type": "string"}] } }`;
 
-            const lifestylePromise = openai.chat.completions.create({
-                model: OPENAI_MODEL_GENERAL,
-                messages: [{ role: "system", content: systemInstruction }, { role: "user", content: promptLifestyleWithJson }],
-                response_format: { type: "json_object" }
-            });
+            const lifestylePromise = fetch('/api/openai', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    model: OPENAI_MODEL_GENERAL,
+                    messages: [{ role: "system", content: systemInstruction }, { role: "user", content: promptLifestyleWithJson }],
+                    response_format: { type: "json_object" }
+                })
+            }).then(r => r.json());
 
-            const stylePromise = openai.chat.completions.create({
-                model: OPENAI_MODEL_STYLE,
-                messages: [{ role: "system", content: systemInstruction }, { role: "user", content: promptStyleWithJson }],
-                response_format: { type: "json_object" }
-            });
+            const stylePromise = fetch('/api/openai', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    model: OPENAI_MODEL_STYLE,
+                    messages: [{ role: "system", content: systemInstruction }, { role: "user", content: promptStyleWithJson }],
+                    response_format: { type: "json_object" }
+                })
+            }).then(r => r.json());
 
             const [lifestyleRes, styleRes] = await Promise.all([lifestylePromise, stylePromise]);
 

@@ -32,10 +32,11 @@
 | ✅ | **Foundry Image Spec v6.3** | `services/geminiService.ts` | `gpt-image-1-mini` 모델 사양 준수 (`response_format` 제거, `quality: medium`) |
 | ✅ | **Foundry Image Size Fix v6.4** | `services/geminiService.ts` | Portrait를 `1024x1536`으로 변경하여 400 에러 해결 |
 | ✅ | Login Gate | `screens/LoginGate.tsx`, `App.tsx`, `constants.ts` | 비밀번호(SHA-256) 기반 접근 제어 (Admin/Guest) |
-| ✅ | API Key Config | `vite.config.ts`, `.env`, `.env.local` | Vite 환경 변수 주입 및 sanitization (공백/주석 제거) |
+| ✅ | Login Gate | `screens/LoginGate.tsx`, `App.tsx`, `constants.ts` | 비밀번호(SHA-256) 기반 접근 제어 (Admin/Guest) |
+| ✅ | API Key Security | `functions/api/`, `geminiService.ts` | Cloudflare Functions Proxy 도입 (OpenAI Key 클라이언트 노출 제거) |
 | ✅ | Image Gen Prompt | `services/geminiService.ts` | 체형(Body Type) 반영 프롬프트 강화, OpenAI 모델 파라미터 최적화 |
 | ✅ | Item Emojis | `screens/StyleWorkout.tsx` | 의상 아이템 한국어 키워드 매칭 및 이모지 매핑 오류 수정 |
-| 🔄 | PWA / Offline | `sw.js`, `manifest.json` | (예정) 오프라인 지원 및 설치 가능한 웹 앱 구현 |
+| ⏸️ | PWA / Offline | `sw.js`, `manifest.json` | (보류) 배포 후 안정화 단계에서 진행 |
 | 🚧 | **칼로리 트래커** | `screens/DietRecipe.tsx` | 현재 정적 데이터 표시. 실제 기록 기능 연동 필요 |
 | 🚧 | **운동 타이머** | `screens/StyleWorkout.tsx` | 운동 가이드 화면에 카운트다운 타이머 기능 추가 필요 |
 

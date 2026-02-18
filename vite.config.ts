@@ -24,10 +24,8 @@ export default defineConfig(({ mode }) => {
     define: {
       // 3. 전역 상수 정의 (클라이언트 코드에서 문자열 리터럴로 치환됨)
       __GOOGLE_KEY__: JSON.stringify(googleKey),
-      __OPENAI_KEY__: JSON.stringify(openAiKey),
-      // ⚠️ 주의: 'process.env': {} 폴리필은 제거됨.
-      // 이 폴리필이 런타임에서 process.env를 빈 객체로 덮어씌워
-      // .env 파일에서 읽은 값이 모두 사라지는 버그를 유발했음.
+      // __OPENAI_KEY__: JSON.stringify(openAiKey), // REMOVED: Proxy 사용
+      'process.env': env
     },
     build: {
       outDir: 'dist',
