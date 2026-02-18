@@ -2,9 +2,9 @@ import { Recipe, Outfit, Workout, Mood, Season, MBTI, BodyTarget, Language } fro
 
 // --- 접근 제어 비밀번호 해시 (SHA-256, 평문 노출 없음) ---
 // 관리자: 전체 기능 (Gemini AI 포함)
-export const ADMIN_PASSWORD_HASH = '9fc7ef2c7100149c53ca373e5f4a8cdeb1df6a787bf46a385a0ded647fbfefda0';
+export const ADMIN_PASSWORD_HASH = '9fc7ef2c7100149c53ca373e5f4a8cdeb1df6a787bf4e01dab583875c89d6c7f';
 // 제공용: 일반 기능 (Gemini AI 버튼 숨김)
-export const GUEST_PASSWORD_HASH = 'e54fc6b51915e222ba6196747a19ebb8dfa651fd2b46b1b3e1e5b3e2f3c4d5e6f';
+export const GUEST_PASSWORD_HASH = 'e54fc6b51915e222ba6196747a19ebb8dfa651fd2b46a385a0ded647fbfefda0';
 
 
 // Mock Data acting as Local DB
