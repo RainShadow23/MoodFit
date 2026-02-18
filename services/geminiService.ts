@@ -136,25 +136,35 @@ const generateImageOpenAI = async (prompt: string, aspectRatio: string): Promise
                 prompt: prompt,
                 n: 1,
                 size: size,
-                quality: "medium",
-                response_format: "b64_json"
+                quality: "medium"
+                // response_format 제거 (Foundry Spec: gpt-image-1-mini는 이를 지원하지 않거나 기본값 사용)
             })
         });
 
         if (!response.ok) {
             const errorText = await response.text();
             console.error(`[OpenAI Proxy] Image Gen Failed: ${response.status} ${response.statusText}`, errorText);
+            // 에러가 400이면 파라미터 문제일 가능성 높음
             return null;
         }
 
         const data = await response.json();
-        const b64Json = (data.data?.[0] as any)?.b64_json;
+        const item = data.data?.[0] as any;
 
-        if (b64Json) {
-            return `data:image/png;base64,${b64Json}`;
+        // 1. b64_json 확인
+        if (item?.b64_json) {
+            return `data:image/png;base64,${item.b64_json}`;
         }
 
-        console.warn("[OpenAI Proxy] No b64_json in response", data);
+        // 2. url 확인 (response_format 없을 시 기본값) -> 다운로드 및 변환 필요하지만 일단 URL 반환 시도 또는 null
+        // CORS 문제로 프론트에서 직접 다운로드가 안될 수 있으므로, 가능하다면 URL이라도 반환
+        if (item?.url) {
+            return item.url;
+            // 주의: OpenAI URL은 만료 시간이 있음. 바로 <img> 태그에 쓰거나, 프록시가 다운로드해서 줘야 함.
+            // 현재 구조상 URL을 반환하면 <img src="...">로 작동은 할 것임.
+        }
+
+        console.warn("[OpenAI Proxy] No image data (b64_json or url) in response", data);
         return null;
 
     } catch (e: any) {
