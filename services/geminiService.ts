@@ -279,7 +279,6 @@ export const fetchAIRecommendations = async (user: UserProfile): Promise<Recomme
     const systemInstruction = `You are a hyper-personalized lifestyle coach. Output valid JSON only. ${languageInstruction}`;
     const contextPrompt = `Profile: ${user.gender}, ${user.mbti}, ${user.currentMood}, ${user.currentSeason}, ${user.boneStructure} body, Target: ${user.targetArea}.`;
 
-    const userSuffix = `\n\nREMINDER: TRANSLATE EVERYTHING TO ${languageName} LANGUAGE.`;
 
     // --- PROMPT 1: LIFESTYLE (Quote, Recipe, Workout) ---
     const promptLifestyle = `
